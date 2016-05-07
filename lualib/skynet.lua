@@ -548,13 +548,7 @@ function skynet.harbor(addr)
 	return c.harbor(addr)
 end
 
-function skynet.error(...)
-	local t = {...}
-	for i=1,#t do
-		t[i] = tostring(t[i])
-	end
-	return c.error(table.concat(t, " "))
-end
+skynet.error = c.error
 
 ----- register protocol
 do
@@ -660,6 +654,11 @@ end
 
 function skynet.term(service)
 	return _error_dispatch(0, service)
+end
+
+function skynet.memlimit(bytes)
+	debug.getregistry().memlimit = bytes
+	skynet.memlimit = nil	-- set only once
 end
 
 local function clear_pool()
