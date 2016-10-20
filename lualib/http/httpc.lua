@@ -136,12 +136,19 @@ function httpc.post(host, url, form, recvheader)
 	local header = {
 		["content-type"] = "application/x-www-form-urlencoded"
 	}
-	local body = {}
-	for k,v in pairs(form) do
-		table.insert(body, string.format("%s=%s",escape(k),escape(v)))
+
+	local body
+	if type(form) == "string" then
+		body=form
+	else
+		body = {}
+		for k,v in pairs(form) do
+			table.insert(body, string.format("%s=%s",escape(k),escape(v)))
+		end
+		body=table.concat(body , "&")
 	end
 
-	return httpc.request("POST", host, url, recvheader, header, table.concat(body , "&"))
+	return httpc.request("POST", host, url, recvheader, header, body)
 end
 
 return httpc
