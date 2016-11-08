@@ -44,5 +44,5 @@ if LUA_PRELOAD then
 	f(table.unpack(args))
 	LUA_PRELOAD = nil
 end
-
+math.randomseed(os.time())
 main(select(2, table.unpack(args)))
