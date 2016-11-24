@@ -1250,6 +1250,7 @@ luaopen_bson(lua_State *L) {
 		{ "binary", lbinary },
 		{ "objectid", lobjectid },
 		{ "decode", ldecode },
+		{ "decode_string", ldecode_string },
 		{ NULL,  NULL },
 	};
 
