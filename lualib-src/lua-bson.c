@@ -876,11 +876,26 @@ ldecode(lua_State *L) {
 	return 1;
 }
 
+static int
+ldecode_string(lua_State *L) {
+    size_t len2=0;
+	const char * data = luaL_checklstring(L,1,&len2);
+	if (data == NULL || len2 ==0 ) {
+		return 0;
+	}
+	const uint8_t * b = (const uint8_t *)data;
+	int32_t len = get_length(b);
+	struct bson_reader br = { b , len };
+	unpack_dict(L, &br, false);
+	return 1;
+}
+
 static void
 bson_meta(lua_State *L) {
 	if (luaL_newmetatable(L, "bson")) {
 		luaL_Reg l[] = {
 			{ "decode", ldecode },
+			{ "decode_string", ldecode_string },
 			{ "makeindex", lmakeindex },
 			{ NULL, NULL },
 		};
