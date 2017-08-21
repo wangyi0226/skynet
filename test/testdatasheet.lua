@@ -12,11 +12,11 @@ local function dump(t, prefix)
 end
 
 skynet.start(function()
-	builder.new("foobar", {a = 1, b = 2 , c = {3} })
+	builder.new("foobar", {a = 1, b = 2 , c = {3},[2100]={1,2,3} })
 	local t = datasheet.query "foobar"
 	local c = t.c
 	dump(t, "[1]")
-	builder.update("foobar", { b = 4, c = { 5 } })
+	builder.update("foobar", { b = 4, c = { 5 } ,[2100]={[-1]=3,[6]=6,[7]=7}})
 	print("sleep")
 	skynet.sleep(100)
 	dump(t, "[2]")
