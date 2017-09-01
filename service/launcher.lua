@@ -13,6 +13,10 @@ end
 
 local NORET = {}
 
+function command.EXIST(_, handle)
+	return services[handle]
+end
+
 function command.LIST()
 	local list = {}
 	for k,v in pairs(services) do
