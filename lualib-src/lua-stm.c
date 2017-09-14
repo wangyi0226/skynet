@@ -229,8 +229,9 @@ lread(lua_State *L) {
 		lua_replace(L, 1);
 		return lua_gettop(L);
 	} else {
-		lua_pushboolean(L, 0);
-		return 1;
+		lua_pushboolean(L, 1);
+		lua_pushnil(L);
+		return 2;
 	}
 }
 
