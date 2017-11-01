@@ -234,7 +234,7 @@ copytable(lua_State *L, int tbl, struct proxy *p) {
 	if (t == NULL) {
 		luaL_error(L, "Invalid proxy (index = %d)", p->index);
 	}
-	const uint32_t * v = (const uint32_t *)((const char *)t + sizeof(uint32_t) + ((t->dict*2 + 3) & ~3));
+	const uint32_t * v = (const uint32_t *)((const char *)t + sizeof(uint32_t) + ((t->dict*2+ 3) & ~3));
 	int i;
 	for (i=0;i<t->dict;i++) {
 		pushvalue(L, v++, t->type[2*i], doc);

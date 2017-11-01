@@ -1,4 +1,6 @@
 local skynet = require "skynet"
+skynet.cache.clear()
+local skynet = require "skynet"
 local builder = require "skynet.datasheet.builder"
 local datasheet = require "skynet.datasheet"
 
@@ -12,11 +14,11 @@ local function dump(t, prefix)
 end
 
 skynet.start(function()
-	builder.new("foobar", {a = 1, b = 2 , c = {3},[2100]={1,2,3} })
+	builder.new("foobar", {a = 1, b = -2 ,[7]="asdasd", c = {-3,"aaaaaaaa"} })
 	local t = datasheet.query "foobar"
 	local c = t.c
 	dump(t, "[1]")
-	builder.update("foobar", { b = 4, c = { 5 } ,[2100]={[-1]=3,[6]=6,[7]=7}})
+	builder.update("foobar", { b = 4, c = { -5,"bbbbbb" },[-7]="zzzzzz" })
 	print("sleep")
 	skynet.sleep(100)
 	dump(t, "[2]")

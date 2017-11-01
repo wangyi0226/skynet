@@ -7,7 +7,6 @@ document :
   strings
 
 table:
-  int32 array
   int32 dict
   int8*(key+value) type (align 4)
   kvpair*dict
@@ -90,7 +89,7 @@ function ctd.dump(root)
 		end
 		-- encode table
 		local typeset = table.concat(types)
-		local align = string.rep("\0", (4 - #typeset  & 3) & 3)
+		local align = string.rep("\0", (4 - #typeset & 3) & 3)
 		local tmp = {
 			string.pack("<i4", #kvs/2),
 			typeset,
@@ -151,9 +150,9 @@ function ctd.undump(v)
 			end
 		end
 		for i=1,dict do
-			local key = value(types[i*2-1])
-			local value = value(types[i*2])
-			result[key] = value
+			local key= value(types[i*2-1])
+			local val=value(types[i*2])
+			result[key] = val
 		end
 		tblidx[result] = n
 		return result
@@ -203,8 +202,8 @@ function ctd.diff(last, current)
 	local function remap(n)
 		local toffset = index[n+1] + header
 		local dict = string.unpack("<I4", current, toffset)
-		local types = { string.unpack(string.rep("B", dict*2), current, toffset + 4) }
-		local hlen = (dict*2 + 4 + 3) & ~3
+		local types = { string.unpack(string.rep("B", 2*dict), current, toffset + 4) }
+		local hlen = (2*dict + 4 + 3) & ~3
 		local hastable = false
 		for _, v in ipairs(types) do
 			if v == 4 then -- table
@@ -219,8 +218,8 @@ function ctd.diff(last, current)
 		local pat = "<" .. string.rep("I4", dict * 2)
 		local values = { string.unpack(pat, current, offset) }
 		for i = 1, dict do
-			if types[i * 2] == 4 then -- table
-				values[i * 2] = map[values[i * 2]]
+			if types[i*2] == 4 then -- table
+				values[i*2] = map[values[i*2]]
 			end
 		end
 		return string.sub(current, toffset, toffset + hlen - 1) ..
