@@ -14,16 +14,50 @@ local function read_response(sock)
 	return cluster.unpackresponse(msg)	-- session, ok, data, padding
 end
 
+local connecting = {}
+
 local function open_channel(t, key)
-	local host, port = string.match(node_address[key], "([^:]+):(.*)$")
-	local c = sc.channel {
-		host = host,
-		port = tonumber(port),
-		response = read_response,
-		nodelay = true,
-	}
-	assert(c:connect(true))
-	t[key] = c
+	local ct = connecting[key]
+	if ct then
+		local co = coroutine.running()
+		table.insert(ct, co)
+		skynet.wait(co)
+		return assert(ct.channel)
+	end
+	ct = {}
+	connecting[key] = ct
+	local address = node_address[key]
+	if address == nil then
+		local co = coroutine.running()
+		assert(ct.namequery == nil)
+		ct.namequery = co
+		skynet.error("Wating for cluster node [".. key.."]")
+		skynet.wait(co)
+		address = node_address[key]
+		assert(address ~= nil)
+	end
+	local succ, err, c
+	if address then
+		local host, port = string.match(address, "([^:]+):(.*)$")
+		c = sc.channel {
+			host = host,
+			port = tonumber(port),
+			response = read_response,
+			nodelay = true,
+		}
+		succ, err = pcall(c.connect, c, true)
+		if succ then
+			t[key] = c
+			ct.channel = c
+		end
+	else
+		err = "cluster node [" .. key .. "] is down."
+	end
+	connecting[key] = nil
+	for _, co in ipairs(ct) do
+		skynet.wakeup(co)
+	end
+	assert(succ, err)
 	return c
 end
 
@@ -40,13 +74,18 @@ local function loadconfig(tmp)
 		end
 	end
 	for name,address in pairs(tmp) do
-		assert(type(address) == "string")
+		assert(address == false or type(address) == "string")
 		if node_address[name] ~= address then
 			-- address changed
 			if rawget(node_channel, name) then
 				node_channel[name] = nil	-- reset connection
 			end
 			node_address[name] = address
+		end
+		local ct = connecting[name]
+		if ct and ct.namequery then
+			skynet.error(string.format("Cluster node [%s] resloved : %s", name, address))
+			skynet.wakeup(ct.namequery)
 		end
 	end
 end
@@ -59,7 +98,8 @@ end
 function command.listen(source, addr, port)
 	local gate = skynet.newservice("gate")
 	if port == nil then
-		addr, port = string.match(node_address[addr], "([^:]+):(.*)$")
+		local address = assert(node_address[addr], addr .. " is down")
+		addr, port = string.match(address, "([^:]+):(.*)$")
 	end
 	skynet.call(gate, "lua", "open", { address = addr, port = port })
 	skynet.ret(skynet.pack(nil))
@@ -138,18 +178,26 @@ function command.socket(source, subcmd, fd, msg)
 		local sz
 		local addr, session, msg, padding, is_push = cluster.unpackrequest(msg)
 		if padding then
-			local req = large_request[session] or { addr = addr , is_push = is_push }
-			large_request[session] = req
+			local requests = large_request[fd]
+			if requests == nil then
+				requests = {}
+				large_request[fd] = requests
+			end
+			local req = requests[session] or { addr = addr , is_push = is_push }
+			requests[session] = req
 			table.insert(req, msg)
 			return
 		else
-			local req = large_request[session]
-			if req then
-				large_request[session] = nil
-				table.insert(req, msg)
-				msg,sz = cluster.concat(req)
-				addr = req.addr
-				is_push = req.is_push
+			local requests = large_request[fd]
+			if requests then
+				local req = requests[session]
+				if req then
+					requests[session] = nil
+					table.insert(req, msg)
+					msg,sz = cluster.concat(req)
+					addr = req.addr
+					is_push = req.is_push
+				end
 			end
 			if not msg then
 				local response = cluster.packresponse(session, false, "Invalid large req")
@@ -191,8 +239,8 @@ function command.socket(source, subcmd, fd, msg)
 		skynet.error(string.format("socket accept from %s", msg))
 		skynet.call(source, "lua", "accept", fd)
 	else
-		large_request = {}
-		skynet.error(string.format("socket %s %d : %s", subcmd, fd, msg))
+		large_request[fd] = nil
+		skynet.error(string.format("socket %s %d %s", subcmd, fd, msg or ""))
 	end
 end
 
