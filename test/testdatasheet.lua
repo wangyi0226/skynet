@@ -1,4 +1,6 @@
 local skynet = require "skynet"
+skynet.cache.clear()
+local skynet = require "skynet"
 local builder = require "skynet.datasheet.builder"
 local datasheet = require "skynet.datasheet"
 
