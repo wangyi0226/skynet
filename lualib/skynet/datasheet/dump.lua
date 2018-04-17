@@ -7,14 +7,12 @@ document :
   strings
 
 table:
-  int32 array
   int32 dict
-  int8*(array+dict) type (align 4)
-  value*array
+  int8*(key+value) type (align 4)
   kvpair*dict
 
 kvpair:
-  string k
+  value k
   value v
 
 value: (union)
@@ -49,8 +47,6 @@ function ctd.dump(root)
 		local index = doc.table_n + 1
 		doc.table_n = index
 		doc.table[index] = false	-- place holder
-		local array_n = 0
-		local array = {}
 		local kvs = {}
 		local types = {}
 		local function encode(v)
@@ -83,29 +79,21 @@ function ctd.dump(root)
 				error ("Unsupport value " .. tostring(v))
 			end
 		end
-		for i,v in ipairs(t) do
-			types[i], array[i] = encode(v)
-			array_n = i
-		end
 		for k,v in pairs(t) do
-			if type(k) == "string" then
-				local _, kv = encode(k)
-				local tv, ev = encode(v)
-				table.insert(types, tv)
-				table.insert(kvs, kv .. ev)
-			else
-				local ik = math.tointeger(k)
-				assert(ik and ik > 0 and ik <= array_n)
-			end
+			local tk, kv = encode(k)
+			local tv, ev = encode(v)
+			table.insert(types, tk)
+			table.insert(kvs, kv)
+			table.insert(types, tv)
+			table.insert(kvs, ev)
 		end
 		-- encode table
 		local typeset = table.concat(types)
 		local align = string.rep("\0", (4 - #typeset & 3) & 3)
 		local tmp = {
-			string.pack("<i4i4", array_n, #kvs),
+			string.pack("<i4", #kvs/2),
 			typeset,
 			align,
-			table.concat(array),
 			table.concat(kvs),
 		}
 		doc.table[index] = table.concat(tmp)
@@ -138,9 +126,9 @@ function ctd.undump(v)
 	local tblidx = {}
 	local function decode(n)
 		local toffset = index[n+1] + header
-		local array, dict = string.unpack("<I4I4", v, toffset)
-		local types = { string.unpack(string.rep("B", (array+dict)), v, toffset + 8) }
-		local offset = ((array + dict + 8 + 3) & ~3) + toffset
+		local dict = string.unpack("<I4", v, toffset)
+		local types = { string.unpack(string.rep("B", dict*2), v, toffset + 4) }
+		local offset = ((dict*2 + 4 + 3) & ~3) + toffset
 		local result = {}
 		local function value(t)
 			local off = offset
@@ -161,14 +149,10 @@ function ctd.undump(v)
 				error (string.format("Invalid data at %d (%d)", off, t))
 			end
 		end
-		for i=1,array do
-			table.insert(result, value(types[i]))
-		end
 		for i=1,dict do
-			local sindex = string.unpack("<I4", v, offset)
-			offset = offset + 4
-			local key = string.unpack("z", v, stringtbl + sindex)
-			result[key] = value(types[array + i])
+			local key= value(types[i*2-1])
+			local val=value(types[i*2])
+			result[key] = val
 		end
 		tblidx[result] = n
 		return result
@@ -217,9 +201,9 @@ function ctd.diff(last, current)
 	local header = 4 + 4 + 4 * n + 1
 	local function remap(n)
 		local toffset = index[n+1] + header
-		local array, dict = string.unpack("<I4I4", current, toffset)
-		local types = { string.unpack(string.rep("B", (array+dict)), current, toffset + 8) }
-		local hlen = (array + dict + 8 + 3) & ~3
+		local dict = string.unpack("<I4", current, toffset)
+		local types = { string.unpack(string.rep("B", 2*dict), current, toffset + 4) }
+		local hlen = (2*dict + 4 + 3) & ~3
 		local hastable = false
 		for _, v in ipairs(types) do
 			if v == 4 then -- table
@@ -228,19 +212,14 @@ function ctd.diff(last, current)
 			end
 		end
 		if not hastable then
-			return string.sub(current, toffset, toffset + hlen + (array + dict * 2) * 4 - 1)
+			return string.sub(current, toffset, toffset + hlen + dict * 2 * 4 - 1)
 		end
 		local offset = hlen + toffset
-		local pat = "<" .. string.rep("I4", array + dict * 2)
+		local pat = "<" .. string.rep("I4", dict * 2)
 		local values = { string.unpack(pat, current, offset) }
-		for i = 1, array do
-			if types[i] == 4 then	-- table
-				values[i] = map[values[i]]
-			end
-		end
 		for i = 1, dict do
-			if types[i + array] == 4 then -- table
-				values[array + i * 2] = map[values[array + i * 2]]
+			if types[i*2] == 4 then -- table
+				values[i*2] = map[values[i*2]]
 			end
 		end
 		return string.sub(current, toffset, toffset + hlen - 1) ..

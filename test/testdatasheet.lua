@@ -1,6 +1,6 @@
 local skynet = require "skynet"
-
-local mode = ...
+local builder = require "skynet.datasheet.builder"
+local datasheet = require "skynet.datasheet"
 
 local function dump(t, prefix)
 	for k,v in pairs(t) do
@@ -11,30 +11,12 @@ local function dump(t, prefix)
 	end
 end
 
-if mode == "child" then
-
-	local datasheet = require "skynet.datasheet"
-
-	skynet.start(function()
-		local t = datasheet.query("foobar")
-		dump(t, "[CHILD]")
-
-		skynet.sleep(100)
-		skynet.exit()
-	end)
-
-else
-
-local builder = require "skynet.datasheet.builder"
-local datasheet = require "skynet.datasheet"
-
 skynet.start(function()
-	builder.new("foobar", {a = 1, b = 2 , c = {3} })
-	skynet.newservice(SERVICE_NAME, "child")
+	builder.new("foobar", {a = 1, b = -2 ,[7]="asdasd", c = {-3,"aaaaaaaa"} })
 	local t = datasheet.query "foobar"
 	local c = t.c
 	dump(t, "[1]")
-	builder.update("foobar", { b = 4, c = { 5 } })
+	builder.update("foobar", { b = 4, c = { -5,"bbbbbb" },[-7]="zzzzzz" })
 	print("sleep")
 	skynet.sleep(100)
 	dump(t, "[2]")
@@ -44,5 +26,3 @@ skynet.start(function()
 	skynet.sleep(100)
 	dump(t, "[3]")
 end)
-
-end

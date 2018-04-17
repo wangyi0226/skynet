@@ -30,10 +30,8 @@ struct document {
 };
 
 struct table {
-	uint32_t array;
 	uint32_t dict;
 	uint8_t type[1];
-	// value[array]
 	// kvpair[dict]
 };
 
@@ -236,15 +234,11 @@ copytable(lua_State *L, int tbl, struct proxy *p) {
 	if (t == NULL) {
 		luaL_error(L, "Invalid proxy (index = %d)", p->index);
 	}
-	const uint32_t * v = (const uint32_t *)((const char *)t + sizeof(uint32_t) + sizeof(uint32_t) + ((t->array + t->dict + 3) & ~3));
+	const uint32_t * v = (const uint32_t *)((const char *)t + sizeof(uint32_t) + ((t->dict*2+ 3) & ~3));
 	int i;
-	for (i=0;i<t->array;i++) {
-		pushvalue(L, v++, t->type[i], doc);
-		lua_rawseti(L, tbl, i+1);
-	}
 	for (i=0;i<t->dict;i++) {
-		pushvalue(L, v++, VALUE_STRING, doc);
-		pushvalue(L, v++, t->type[t->array+i], doc);
+		pushvalue(L, v++, t->type[2*i], doc);
+		pushvalue(L, v++, t->type[2*i+1], doc);
 		lua_rawset(L, tbl);
 	}
 }
