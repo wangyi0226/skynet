@@ -109,11 +109,13 @@ local function co_create(f)
 			while true do
 				local session = session_coroutine_id[co]
 				if session and session ~= 0 then
+					--[[
 					local source = debug.getinfo(f,"S")
 					skynet.error(string.format("Maybe forgot response session %s from %s : %s:%d",
 						session,
 						skynet.address(session_coroutine_address[co]),
 						source.source, source.linedefined))
+					]]
 				end
 				f = nil
 				coroutine_pool[#coroutine_pool+1] = co
