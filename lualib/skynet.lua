@@ -217,6 +217,7 @@ local function suspend_sleep(session, token)
 end
 
 function skynet.sleep(ti, token)
+	assert(ti>0)
 	local session = c.intcommand("TIMEOUT",ti)
 	assert(session)
 	token = token or coroutine.running()
