@@ -265,7 +265,13 @@ static int math_random (lua_State *L) {
     default: return luaL_error(L, "wrong number of arguments");
   }
   /* random integer in the interval [low, up] */
-  luaL_argcheck(L, low <= up, 1, "interval is empty");
+  //luaL_argcheck(L, low <= up, 1, "interval is empty");
+  if(low>up){
+    lua_Integer tmp;
+    tmp=low;
+    low=up;
+    up=tmp;
+  }
   luaL_argcheck(L, low >= 0 || up <= LUA_MAXINTEGER + low, 1,
                    "interval too large");
   r *= (double)(up - low) + 1.0;
