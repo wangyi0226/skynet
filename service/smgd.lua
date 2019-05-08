@@ -18,6 +18,7 @@ _ENV.accept=smg_env.accept
 _ENV.response=smg_env.response
 _ENV.dft_dispatcher=nil
 _ENV.enablecluster=nil
+_ENV.func=func
 
 local profile_table = {}
 

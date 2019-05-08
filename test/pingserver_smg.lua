@@ -30,8 +30,8 @@ function accept.hello()
 	accept.hello2()
 	lock(function()
 	i = i + 1
-	print (i)
-	--print (i, hello)
+	print(i)
+	--print (i, hello)--hotfix修改hello需要在函数内也调用hello
 	end)
 end
 
@@ -47,9 +47,9 @@ function response.error()
 	error "throw an error"
 end
 
-function dispatch(...)
-	print("=======================================dispatch:")
-	dft_dispatcher(...)
+function dispatch(session , source , id,...)
+	print("=======================================dispatch1:",func[id][3])
+	dft_dispatcher(session,source,id,...)
 end
 
 function init( ... )

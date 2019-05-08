@@ -18,9 +18,9 @@ function accept.hello()
 	print ("fix", i, hello)
 end
 
-function dispatch(...)
-	print("=======================================dispatch2:",...)
-	dft_dispatcher(...)
+function dispatch(session , source , id,...)
+	print("=======================================dispatch2:",func[id][3],id,...)
+	dft_dispatcher(session,source,id,...)
 end
 
 function exit(...)

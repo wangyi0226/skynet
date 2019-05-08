@@ -105,7 +105,6 @@ local function patch_func(funcs, global, group, name, f)
 		if enablecluster then
 			skynet.dispatch("lua",f)
 		end
-		print(":;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",smg.enablecluster)
 		smg.enablecluster=function()
 			skynet.dispatch("lua",f)
 		end
