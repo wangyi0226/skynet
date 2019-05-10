@@ -13,11 +13,32 @@ package.path = smg_path .. "?.lua;" .. package.path
 
 SERVICE_NAME = smg_name
 SERVICE_PATH = smg_path
+_ENV.hotfix_func={}
 
-_ENV.accept=smg_env.accept
-_ENV.response=smg_env.response
-_ENV.dft_dispatcher=nil
-_ENV.enablecluster=nil
+local function hotfix_func_id(tbl,group)
+	local tmp = {}
+	hotfix_func[group]={}
+	local function count(t, name, f)
+		if type(name) ~= "string" then
+			error (string.format("%s method only support string", group))
+		end
+		if type(f) ~= "function" then
+			error (string.format("%s.%s must be function"), group, name)
+		end
+		if tmp[name] then
+			error (string.format("%s.%s duplicate definition", group, name))
+		end
+		tmp[name] = true
+		hotfix_func[group][name]={0,group,name,f}
+		rawset(t,name,f)
+	end
+	return setmetatable(tbl, { __newindex = count })
+end
+
+_ENV.accept=hotfix_func_id(smg_env.accept, "accept") 
+_ENV.response=hotfix_func_id(smg_env.response,"response")
+_ENV.dft_dispatcher=false
+_ENV.enablecluster=false
 _ENV.func=func
 
 local profile_table = {}
@@ -94,7 +115,14 @@ skynet.start(function()
 			timing(method, ...)
 		end
 	end
+
+	local hotfix_dispatch=function( session , source ,group,id, ...)
+		local method = hotfix_func[group][id]
+		timing(method, ...)
+	end
+
 	skynet.dispatch("smg", dispatcher or dft_dispatcher)
+	skynet.dispatch("smg_hotfix",hotfix_dispatch)
 
 	-- set lua dispatcher
 	function smg.enablecluster()

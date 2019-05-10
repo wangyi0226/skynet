@@ -36,7 +36,7 @@ function accept.hello()
 end
 
 function accept.hello2()
-	print("========================:hello2")
+	print("========================:hello2",hello,i)
 end
 
 function accept.exit(...)
@@ -46,11 +46,11 @@ end
 function response.error()
 	error "throw an error"
 end
-
+--[[
 function dispatch(session , source , id,...)
-	print("=======================================dispatch1:",func[id][3])
 	dft_dispatcher(session,source,id,...)
 end
+]]
 
 function init( ... )
 	print ("ping server start:", ...)

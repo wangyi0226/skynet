@@ -114,7 +114,6 @@ end
 local function inject(funcs, source, ...)
 	local patch = si("patch", dummy_env, loader(source))
 	local global = collect_all_uv(funcs)
-
 	for _, v in pairs(patch) do
 		local _, group, name, f = table.unpack(v)
 		if f then

@@ -30,12 +30,23 @@ end
 function hotfix(...)
 	local temp = i
 	i = 100
+	print("hotfix call hello2")
+	accept.hello2()
 	print("hotfix:",i,hello,accept)
+	accept.hello3=function(p)
+		print("accept.hello3",hello,p)
+	end
+	response.hello3=function(p)
+		return p
+	end
 	return temp
 end
 
 	]]))
 	print(ps.post.hello())
+	print(ps.post.hello3("HHHHHHHHHHHHHH hello3"))
+	print("................",ps.req.hello3("HHHHHHHHHHHHHH hello3"))
+	skynet.exit()
 
 	local info = skynet.call(ps.handle, "debug", "INFO")
 

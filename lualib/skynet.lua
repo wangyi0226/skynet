@@ -39,7 +39,8 @@ local skynet = {
 	PTYPE_SNAX = 11,
 	PTYPE_TRACE = 12,	-- use for debug trace
 
-	PTYPE_SMG	= 13,  
+	PTYPE_SMG			= 13,  
+	PTYPE_SMG_HOTFIX	= 14,  
 }
 
 -- code cache

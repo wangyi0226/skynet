@@ -15,6 +15,12 @@ skynet.register_protocol {
 	unpack = skynet.unpack,
 }
 
+skynet.register_protocol {
+	name = "smg_hotfix",
+	id = skynet.PTYPE_SMG_HOTFIX,
+	pack = skynet.pack,
+	unpack = skynet.unpack,
+}
 
 function smg.interface(name)
 	if typeclass[name] then
@@ -48,10 +54,12 @@ local function gen_post(type, handle)
 		__index = function( t, k )
 			local id = type.accept[k]
 			if not id then
-				error(string.format("post %s:%s no exist", type.name, k))
+				return function(...)
+					skynet_send(handle, "smg_hotfix","accept",k, ...)
+				end
 			end
 			return function(...)
-				skynet_send(handle, "smg", id, ...)
+				skynet_send(handle, "smg",id, ...)
 			end
 		end })
 end
@@ -61,7 +69,9 @@ local function gen_req(type, handle)
 		__index = function( t, k )
 			local id = type.response[k]
 			if not id then
-				error(string.format("request %s:%s no exist", type.name, k))
+				return function(...)
+					return skynet_call(handle, "smg_hotfix","response",k, ...)
+				end
 			end
 			return function(...)
 				return skynet_call(handle, "smg", id, ...)
