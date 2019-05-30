@@ -28,7 +28,7 @@ end
 
 skynet.start(function()
 	local si=hashsi.table(HASHSI_TABLE.TEST.id)
-	--if math.random(100)<50 then
+	if math.random(100)<50 then
 		skynet.fork(test_remove,si)
 	else
 		skynet.fork(test_insert,si)
