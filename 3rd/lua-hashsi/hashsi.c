@@ -68,7 +68,7 @@ void hashsi_remove(struct hashsi *si,const char *key) {
 		goto _clear;
 	}
 	while(c->next) {
-		if (strcmp(c->key,key)){
+		if (strcmp(c->key,key)==0){
 			struct hashsi_node * temp = c->next;
 			c->next = temp->next;
 			c = temp;

@@ -18,7 +18,6 @@ static int linit(lua_State *L) {
 		lua_rawgeti(L,1,i+1);
 		int max = luaL_checkinteger(L,-1);
 		hashsi_init(&SI_LIST[i],max);
-		printf("=====================init %d %d\n",SI_LIST[i].lock.read,SI_LIST[i].lock.write);
 	}
   	return 0;
 }
@@ -70,10 +69,31 @@ static int lset(lua_State *L) {
 	return 0;
 }
 
+static int lcount(lua_State *L) {
+	struct hashsi * si=id2hashsi(L);
+	lua_pushinteger(L,si->count);
+	return 1;
+}
+
+static int lnext(lua_State *L) {
+	struct hashsi * si=id2hashsi(L);
+	int index=luaL_checkinteger(L,2);
+	for(;index<si->cap;index++){
+		if (strlen(si->node[index].key)>0){
+			lua_pushinteger(L,index+1);
+			lua_pushstring(L,si->node[index].key);
+			lua_pushinteger(L,si->node[index].val);
+			return 3;
+		}
+	}
+	return 0;
+}
 static struct luaL_Reg reg[] = {
   {"init", linit},
   {"set",lset},
   {"get",lget},
+  {"count",lcount},
+  {"next",lnext},
   {NULL, NULL}
 };
 
