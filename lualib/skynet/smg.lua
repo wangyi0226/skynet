@@ -117,9 +117,8 @@ function smg.newservice(name, ...)
 	return smg.bind(handle, name)
 end
 
---注册时跟snaxd共用命名规则
 function smg.uniqueservice(name, ...)
-	local handle = assert(skynet.call(".service", "lua", "LAUNCH", "snaxd", name, ...))
+	local handle = assert(skynet.call(".service", "lua", "LAUNCH", "smgd", name, ...))
 	return smg.bind(handle, name)
 end
 
@@ -137,7 +136,7 @@ function smg.uniqueservice_list(list)
 end
 
 function smg.globalservice(name, ...)
-	local handle = assert(skynet.call(".service", "lua", "GLAUNCH", "snaxd", name, ...))
+	local handle = assert(skynet.call(".service", "lua", "GLAUNCH", "smgd", name, ...))
 	return smg.bind(handle, name)
 end
 
@@ -155,12 +154,12 @@ function smg.globalservice_list(list)
 end
 
 function smg.queryservice(name)
-	local handle = assert(skynet.call(".service", "lua", "QUERY", "snaxd", name))
+	local handle = assert(skynet.call(".service", "lua", "QUERY", "smgd", name))
 	return smg.bind(handle, name)
 end
 
 function smg.queryglobal(name)
-	local handle = assert(skynet.call(".service", "lua", "GQUERY", "snaxd", name))
+	local handle = assert(skynet.call(".service", "lua", "GQUERY", "smgd", name))
 	return smg.bind(handle, name)
 end
 

@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 require "skynet.manager"	-- import skynet.register
 local snax = require "skynet.snax"
+local smg = require "skynet.smg"
 
 local cmd = {}
 local service = {}
@@ -80,6 +81,8 @@ function cmd.LAUNCH(service_name, subname, ...)
 
 	if realname == "snaxd" then
 		return waitfor(service_name.."."..subname, snax.rawnewservice, subname, ...)
+	elseif realname == "smgd" then
+		return waitfor(service_name.."."..subname, smg.rawnewservice, subname, ...)
 	else
 		return waitfor(service_name, skynet.newservice, realname, subname, ...)
 	end
@@ -89,6 +92,8 @@ function cmd.QUERY(service_name, subname)
 	local realname = read_name(service_name)
 
 	if realname == "snaxd" then
+		return waitfor(service_name.."."..subname)
+	elseif realname == "smgd" then
 		return waitfor(service_name.."."..subname)
 	else
 		return waitfor(service_name)
@@ -172,7 +177,7 @@ local function register_local()
 	local function waitfor_remote(cmd, name, ...)
 		local global_name = "@" .. name
 		local local_name
-		if name == "snaxd" then
+		if name == "snaxd" or name == "smgd" then
 			local_name = global_name .. "." .. (...)
 		else
 			local_name = global_name

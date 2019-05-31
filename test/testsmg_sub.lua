@@ -2,10 +2,10 @@ local skynet = require "skynet"
 local smg = require "skynet.smg"
 
 skynet.start(function()
-	--local ps = smg.uniqueservice("subserver_smg")
-	local ps = smg.newservice("subserver_smg")
+	local ps = smg.uniqueservice("subserver_smg")
+	local ps2 = smg.uniqueservice("subserver_smg")
+	print(ps,ps2,ps==ps2)
 	for i=1,10 do
-		print(ps,ps.req)
 		print("response",ps.req.ping("AAA","BBB","CCC"))
 	end
 	--hotfix subsrv
