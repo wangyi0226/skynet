@@ -3,6 +3,7 @@ local c = require "skynet.core"
 local smg_interface = require "smg.interface"
 local profile = require "skynet.profile"
 local smg = require "skynet.smg"
+require "skynet.manager"
 
 local smg_name = tostring(...)
 local loaderpath = skynet.getenv"smg_loader"
@@ -23,7 +24,7 @@ local function hotfix_func_id(tbl,group)
 			error (string.format("%s method only support string", group))
 		end
 		if type(f) ~= "function" then
-			error (string.format("%s.%s must be function"), group, name)
+			error (string.format("%s.%s must be function", group, name))
 		end
 		if tmp[name] then
 			error (string.format("%s.%s duplicate definition", group, name))
@@ -40,6 +41,9 @@ _ENV.response=hotfix_func_id(smg_env.response,"response")
 _ENV.dft_dispatcher=false
 _ENV.enablecluster=false
 _ENV.func=func
+_ENV.sub=false
+_ENV.subid=false
+_ENV.subsrv_name=false
 
 local profile_table = {}
 
@@ -74,37 +78,75 @@ local function timing( method, ... )
 end
 
 skynet.start(function()
-
 	local init = false
 	local dispatcher
-	for id,method in pairs(func) do
-		if method[2]=="system" and method[3]=="dispatch" then
-			dispatcher=method[4]
+	local router
+	local substart
+	local max_system_id
+	for id,method in ipairs(func) do
+		if method[2]=="system" then 
+			if not max_system_id or id>max_system_id then
+				max_system_id=id
+			end
+			if method[3]=="dispatch" then
+				dispatcher=method[4]
+			elseif method[3] == "route" then
+				router=method[4]
+			elseif method[3] == "substart" then
+				substart=method[4]
+			end
 		end
 	end
+
 	_ENV.dft_dispatcher=function( session , source , id, ...)
 		local method = func[id]
-
+	
 		if method[2] == "system" then
 			local command = method[3]
 			if command == "hotfix" then
 				local hotfix = require "smg.hotfix"
 				skynet.ret(skynet.pack(hotfix(func, ...)))
+			elseif command == "subhotfix" then
+				for k,v in ipairs(sub) do
+					smg.hotfix(v,...)
+				end
+			elseif command == "sublist" then
+				local list={}
+				for k,v in ipairs(sub) do
+					table.insert(list,v.handle)
+				end
+				skynet.ret(skynet.pack(subsrv_name,list))
 			elseif command == "profile" then
 				skynet.ret(skynet.pack(profile_table))
 			elseif command == "init" then
 				assert(not init, "Already init")
 				local initfunc = method[4] or function() end
+				if substart then
+					subid=...
+				end
 				initfunc(...)
+				if substart and  not subid then
+					substart()
+				end
 				skynet.ret()
 				skynet.info_func(function()
 					return profile_table
 				end)
 				init = true
+
 			else
 				assert(init, "Never init")
 				assert(command == "exit")
 				local exitfunc = method[4] or function() end
+				if sub then
+					for k,v in pairs(sub) do
+						local r,err=pcall(smg.kill,v)
+						if not r then
+							error("sub srv exit error:"..tostring(k))
+						end
+						sub[k]=nil
+					end
+				end
 				exitfunc(...)
 				skynet.ret()
 				init = false
@@ -128,5 +170,43 @@ skynet.start(function()
 	function smg.enablecluster()
 		enablecluster=true
 		skynet.dispatch("lua", dispatcher or dft_dispatcher)
+	end
+
+	function smg.start_subsrv(subsrv_name,num)
+		_ENV.sub={}
+		_ENV.subsrv_name=subsrv_name
+		for i=1,num do
+			local handle=smg.newservice(subsrv_name,i)
+			table.insert(sub,handle)
+		end
+		local balance
+		if not router then
+			balance=1
+			router=function(id,...)
+				balance = balance + 1
+				if balance > num then
+					balance = 1
+				end	
+				return balance
+			end
+		end
+		skynet.dispatch("smg", function(session , source ,id,...)
+			if id <= max_system_id then
+				return (dispatcher or dft_dispatcher)(session,source,id,...)
+			end
+			balance=router(id,...)
+			if not balance then--不需要子服务处理
+				return (dispatcher or dft_dispatcher)(session,source,id,...)
+			end
+			if balance >num then
+				balance=balance%num+1
+			end
+			local handle=sub[balance]
+			skynet.redirect(handle.handle, source,"smg", session,skynet.pack(id,...))
+			if skynet.ignoreret then
+				skynet.ignoreret()
+			end
+		end
+		)
 	end
 end)

@@ -190,6 +190,11 @@ function smg.hotfix(obj, source, ...)
 	return test_result(skynet_call(obj.handle, "smg", t.system.hotfix, source, ...))
 end
 
+function smg.subhotfix(obj, source, ...)
+	local t = smg.interface(obj.type)
+	return test_result(skynet_send(obj.handle, "smg", t.system.subhotfix, source, ...))
+end
+
 function smg.printf(fmt, ...)
 	skynet.error(string.format(fmt, ...))
 end
@@ -199,4 +204,13 @@ function smg.profile_info(obj)
 	return skynet_call(obj.handle, "smg", t.system.profile)
 end
 
+function smg.sublist(obj)
+	local t = smg.interface(obj.type)
+	local subsrv_name,h_list=skynet_call(obj.handle, "smg", t.system.sublist)
+	local list={}
+	for k,v in ipairs(h_list) do
+		table.insert(list,smg.bind(v,subsrv_name))
+	end
+	return list
+end
 return smg
