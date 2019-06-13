@@ -41,7 +41,7 @@ _ENV.response=hotfix_func_id(smg_env.response,"response")
 _ENV.dft_dispatcher=false
 _ENV.enablecluster=false
 _ENV.func=func
-_ENV.sub=false
+_ENV.sublist=false
 _ENV.subid=false
 _ENV.subsrv_name=false
 
@@ -82,6 +82,7 @@ skynet.start(function()
 	local dispatcher
 	local router
 	local substart
+	local sub_init
 	local max_system_id
 	for id,method in ipairs(func) do
 		if method[2]=="system" then 
@@ -94,25 +95,26 @@ skynet.start(function()
 				router=method[4]
 			elseif method[3] == "substart" then
 				substart=method[4]
+			elseif method[3] == "init" then
+				sub_init=method[4]
 			end
 		end
 	end
 
 	_ENV.dft_dispatcher=function( session , source , id, ...)
-		local method = func[id]
-	
+		local method = func[id] or error("func id error:"..tostring(id))
 		if method[2] == "system" then
 			local command = method[3]
 			if command == "hotfix" then
 				local hotfix = require "smg.hotfix"
 				skynet.ret(skynet.pack(hotfix(func, ...)))
 			elseif command == "subhotfix" then
-				for k,v in ipairs(sub) do
+				for k,v in ipairs(sublist) do
 					smg.hotfix(v,...)
 				end
 			elseif command == "sublist" then
 				local list={}
-				for k,v in ipairs(sub) do
+				for k,v in ipairs(sublist) do
 					table.insert(list,v.handle)
 				end
 				skynet.ret(skynet.pack(subsrv_name,list))
@@ -121,11 +123,9 @@ skynet.start(function()
 			elseif command == "init" then
 				assert(not init, "Already init")
 				local initfunc = method[4] or function() end
-				if substart then
-					subid=...
-				end
 				initfunc(...)
-				if substart and  not subid then
+				if substart then
+					subid=0
 					substart()
 				end
 				skynet.ret()
@@ -133,18 +133,27 @@ skynet.start(function()
 					return profile_table
 				end)
 				init = true
-
+			elseif command == "substart" then
+				substart=nil
+				subid=...
+				assert(not init, "Already init")
+				sub_init(select(1,...))
+				skynet.ret()
+				skynet.info_func(function()
+					return profile_table
+				end)
+				init = true
 			else
 				assert(init, "Never init")
 				assert(command == "exit")
 				local exitfunc = method[4] or function() end
-				if sub then
-					for k,v in pairs(sub) do
-						local r,err=pcall(smg.kill,v)
+				if sublist then
+					for k,v in pairs(sublist) do
+						local r,err=pcall(smg.kill,v,...)
 						if not r then
 							error("sub srv exit error:"..tostring(k))
 						end
-						sub[k]=nil
+						sublist[k]=nil
 					end
 				end
 				exitfunc(...)
@@ -172,17 +181,21 @@ skynet.start(function()
 		skynet.dispatch("lua", dispatcher or dft_dispatcher)
 	end
 
-	function smg.start_subsrv(subsrv_name,num)
-		_ENV.sub={}
+	function smg.start_subsrv(subsrv_name,num,...)
+		_ENV.sublist={}
 		_ENV.subsrv_name=subsrv_name
+		local sub1
 		for i=1,num do
-			local handle=smg.newservice(subsrv_name,i)
-			table.insert(sub,handle)
+			local handle=smg.substart(subsrv_name,i,...)
+			table.insert(sublist,handle)
 		end
+		sub1=sublist[1]
+
+
 		local balance
 		if not router then
 			balance=1
-			router=function(id,...)
+			router=function()
 				balance = balance + 1
 				if balance > num then
 					balance = 1
@@ -190,23 +203,49 @@ skynet.start(function()
 				return balance
 			end
 		end
-		skynet.dispatch("smg", function(session , source ,id,...)
-			if id <= max_system_id then
-				return (dispatcher or dft_dispatcher)(session,source,id,...)
+		if subsrv_name ~= SERVICE_NAME then
+		--当子服务和主服务不是同一个文件时不能存在同主服务同名的接口	
+			for id,method in ipairs(func) do
+				if method[2]=="accept" or method[2] == "response" then 
+					assert(not sub1.func.accept[method[3]] and not sub1.func.response[method[3]],method[3])
+				end
 			end
-			balance=router(id,...)
-			if not balance then--不需要子服务处理
-				return (dispatcher or dft_dispatcher)(session,source,id,...)
-			end
-			if balance >num then
-				balance=balance%num+1
-			end
-			local handle=sub[balance]
-			skynet.redirect(handle.handle, source,"smg", session,skynet.pack(id,...))
-			if skynet.ignoreret then
-				skynet.ignoreret()
-			end
+			skynet.dispatch("smg", function(session , source ,method,id,...)
+				if type(method) == "number" then
+					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
+				end
+				balance=router(method,id,...)
+				if not balance then--不需要子服务处理
+					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
+				end
+				if balance >num then
+					balance=balance%num+1
+				end
+				local handle=sublist[balance]
+				id=handle.func[method][id] or error("func id error:"..tostring(method..","..tostring(id)))
+				skynet.redirect(handle.handle, source,"smg",session,skynet.pack(id,...))
+				if skynet.ignoreret then
+					skynet.ignoreret()
+				end
+			end)
+		else
+			skynet.dispatch("smg", function(session , source ,method,id,...)
+				if type(method) == "number" and method<=max_system_id then
+					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
+				end
+				balance=router(method,id,...)
+				if not balance then--不需要子服务处理
+					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
+				end
+				if balance >num then
+					balance=balance%num+1
+				end
+				local handle=sublist[balance]
+				skynet.redirect(handle.handle, source,"smg",session,skynet.pack(method,id,...))
+				if skynet.ignoreret then
+					skynet.ignoreret()
+				end
+			end)
 		end
-		)
 	end
 end)

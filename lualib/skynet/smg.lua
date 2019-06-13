@@ -53,9 +53,9 @@ local function gen_post(type, handle)
 	return setmetatable({} , {
 		__index = function( t, k )
 			local id = type.accept[k]
-			if not id then
+			if not id then--只有子服务才需要
 				return function(...)
-					skynet_send(handle, "smg_hotfix","accept",k, ...)
+					skynet_send(handle, "smg","accept",k, ...)
 				end
 			end
 			return function(...)
@@ -68,9 +68,9 @@ local function gen_req(type, handle)
 	return setmetatable({} , {
 		__index = function( t, k )
 			local id = type.response[k]
-			if not id then
+			if not id then--只有子服务才需要
 				return function(...)
-					return skynet_call(handle, "smg_hotfix","response",k, ...)
+					return skynet_call(handle, "smg","response",k, ...)
 				end
 			end
 			return function(...)
@@ -79,12 +79,34 @@ local function gen_req(type, handle)
 		end })
 end
 
+--通过热更新增的接口需要用hreq或者hpost
+local function gen_hpost(type, handle)
+	return setmetatable({} , {
+		__index = function( t, k )
+			return function(...)
+				skynet_send(handle, "smg_hotfix","accept",k, ...)
+			end
+		end })
+end
+
+local function gen_hreq(type, handle)
+	return setmetatable({} , {
+		__index = function( t, k )
+			return function(...)
+				return skynet_call(handle, "smg_hotfix","response",k, ...)
+			end
+		end })
+end
+
 local function wrapper(handle, name, type)
 	return setmetatable ({
 		post = gen_post(type, handle),
 		req = gen_req(type, handle),
+		hpost = gen_hpost(type, handle),
+		hreq = gen_hreq(type, handle),
 		type = name,
 		handle = handle,
+		func=type,
 		}, meta)
 end
 
@@ -212,4 +234,15 @@ function smg.sublist(obj)
 	end
 	return list
 end
+
+function smg.substart(name,...)
+	local t = smg.interface(name)
+	local handle = skynet.newservice("smgd", name)
+	assert(handle_cache[handle] == nil)
+	if t.system.substart then
+		skynet.call(handle,"smg",t.system.substart,...)
+	end
+	return smg.bind(handle, name)
+end
+
 return smg
