@@ -47,8 +47,10 @@ mark_shared(lua_State *L) {
 			case LUA_TSTRING: {
 				const char *str = lua_tostring(L, idx);
 				TString *ts = (TString *)(str - sizeof(UTString));
-				if(ts->tt==LUA_TLNGSTR)
+				if(ts->tt == LUA_TLNGSTR)
 					makeshared(ts);
+				else
+					luaS_fix(G(L), ts);
 				break;
 			}
 			default:
