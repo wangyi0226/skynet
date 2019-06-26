@@ -214,7 +214,7 @@ skynet.start(function()
 				if type(method) == "number" then
 					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
 				end
-				balance=router(method,id,...)
+				balance=router(...)
 				if not balance then--不需要子服务处理
 					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
 				end
@@ -233,7 +233,7 @@ skynet.start(function()
 				if type(method) == "number" and method<=max_system_id then
 					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
 				end
-				balance=router(method,id,...)
+				balance=router(...)
 				if not balance then--不需要子服务处理
 					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
 				end
