@@ -19,7 +19,7 @@ _ENV.hotfix_func={}
 local function hotfix_func_id(tbl,group)
 	local tmp = {}
 	hotfix_func[group]={}
-	local function count(t, name, f)
+	local function newindex(t, name, f)
 		if type(name) ~= "string" then
 			error (string.format("%s method only support string", group))
 		end
@@ -29,11 +29,20 @@ local function hotfix_func_id(tbl,group)
 		if tmp[name] then
 			error (string.format("%s.%s duplicate definition", group, name))
 		end
+		for id,method in ipairs(func) do
+			if method[2] == group and method[3] == name then
+				error (string.format("%s.%s duplicate definition", group, name))
+				break
+			end
+		end
 		tmp[name] = true
 		hotfix_func[group][name]={0,group,name,f}
 		rawset(t,name,f)
 	end
-	return setmetatable(tbl, { __newindex = count })
+	local function index(t, name, f)
+		return tbl[name]
+	end
+	return setmetatable({}, { __newindex = newindex, __index=index})
 end
 
 _ENV.accept=hotfix_func_id(smg_env.accept, "accept") 
@@ -44,6 +53,32 @@ _ENV.func=func
 _ENV.sublist=false
 _ENV.subid=false
 _ENV.subsrv_name=false
+_ENV.__patch=function(f1,f2)
+	local i = 1
+	local uv={}
+	while true do
+		local name, value = debug.getupvalue(f2, i)
+		print("find:",name,value,i)
+		if name == nil then
+			break
+		end
+		uv[name]=i
+		i=i+1
+	end
+
+	local i = 1
+	while true do
+		local name, value = debug.getupvalue(f1, i)
+		if name == nil then
+			break
+		end
+		print("patch:",name,f1,i,f2,uv[name])
+		if uv[name] then
+			debug.upvaluejoin(f1,i,f2,uv[name])
+		end
+		i=i+1
+	end
+end
 
 local profile_table = {}
 

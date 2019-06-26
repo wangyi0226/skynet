@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local queue = require "skynet.queue"
 local snax = require "skynet.smg"
+local test_smg_hotfix=require"test_smg_hotfix"
 
 local i = 0
 local hello = "hello"
@@ -35,8 +36,8 @@ function accept.hello()
 	end)
 end
 
-function accept.hello2()
-	print("========================:hello2",hello,i)
+function accept.hello2(p)
+	test_smg_hotfix.print(p)
 end
 
 function accept.exit(...)
