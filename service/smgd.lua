@@ -58,7 +58,6 @@ _ENV.__patch=function(f1,f2)
 	local uv={}
 	while true do
 		local name, value = debug.getupvalue(f2, i)
-		print("find:",name,value,i)
 		if name == nil then
 			break
 		end
@@ -72,7 +71,6 @@ _ENV.__patch=function(f1,f2)
 		if name == nil then
 			break
 		end
-		print("patch:",name,f1,i,f2,uv[name])
 		if uv[name] then
 			debug.upvaluejoin(f1,i,f2,uv[name])
 		end
