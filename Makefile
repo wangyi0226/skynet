@@ -51,7 +51,7 @@ update3rd :
 # skynet
 
 CSERVICE = snlua logger gate harbor
-LUA_CLIB = skynet \
+LUA_CLIB = websocketnetpack clientwebsocket intnetpack clientintsocket skynet \
   client \
   bson md5 sproto lpeg hashsi $(TLS_MODULE)
 
@@ -106,6 +106,18 @@ $(LUA_CLIB_PATH)/bson.so : lualib-src/lua-bson.c | $(LUA_CLIB_PATH)
 
 $(LUA_CLIB_PATH)/md5.so : 3rd/lua-md5/md5.c 3rd/lua-md5/md5lib.c 3rd/lua-md5/compat-5.2.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I3rd/lua-md5 $^ -o $@ 
+
+$(LUA_CLIB_PATH)/websocketnetpack.so : lualib-src/lua-websocketnetpack.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) $^ -Iskynet-src -o $@ 
+
+$(LUA_CLIB_PATH)/intnetpack.so : lualib-src/lua-intnetpack.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) $^ -Iskynet-src -o $@ 
+
+$(LUA_CLIB_PATH)/clientwebsocket.so :lualib-src/lua-clientwebsocket.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -lpthread
+
+$(LUA_CLIB_PATH)/clientintsocket.so :lualib-src/lua-clientintsocket.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -lpthread
 
 $(LUA_CLIB_PATH)/client.so : lualib-src/lua-clientsocket.c lualib-src/lua-crypt.c lualib-src/lsha1.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -lpthread
