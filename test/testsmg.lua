@@ -13,7 +13,7 @@ skynet.start(function()
 local i
 local hello2_old_uv
 local test_smg_hotfix
-
+local lock
 
 function accept.hello()
 	i = i + 1
@@ -37,16 +37,14 @@ function accept.hello2(...)
 	test_smg_hotfix.print(...)	
 end
 
-function dispatch(session , source , id,...)
-	print("=======================================dispatch2:",func[id][3],id,...)
-	dft_dispatcher(session,source,id,...)
+function dispatch(method, ... )
+	print("=======================================dispatch2:",method[1],method[2],method[3],method[4],...)
+	method[4](...)
 end
 
 function exit(...)
 	print ("ping server exit2:", ...)
 end
-
-
 
 function hotfix(...)
 	local temp = i

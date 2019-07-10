@@ -101,12 +101,20 @@ local function patch_func(funcs, global, group, name, f)
 	_patch(global, f)
 	desc[4] = f
 	if name == "dispatch" then
-		skynet.dispatch("smg",f)
-		if enablecluster then
-			skynet.dispatch("lua",f)
-		end
-		smg.enablecluster=function()
-			skynet.dispatch("lua",f)
+		local i = 1
+		while true do
+			local name2, value = debug.getupvalue(dft_dispatcher, i)
+			if name2 == nil then
+				return
+			end
+			if name2 == "dispatcher" then
+				local temp_f=function()
+					return f 
+				end
+				debug.upvaluejoin(dft_dispatcher,i,temp_f,1)
+				break
+			end
+			i = i + 1
 		end
 	end
 end

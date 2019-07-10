@@ -110,6 +110,20 @@ local function timing( method, ... )
 	assert(err,msg)
 end
 
+local function dispatcher_timing(dispatcher,method, ... )
+	local err, msg
+	profile.start()
+	if method[2] == "accept" then
+		-- no return
+		err,msg = xpcall(dispatcher, traceback,method,...)
+	else
+		err,msg = xpcall(return_f, traceback,dispatcher,method, ...)
+	end
+	local ti = profile.stop()
+	update_stat(method[3], ti)
+	assert(err,msg)
+end
+
 skynet.start(function()
 	local init = false
 	local dispatcher
@@ -196,7 +210,11 @@ skynet.start(function()
 			end
 		else
 			assert(init, "Init first")
-			timing(method, ...)
+			if dispatcher then
+				dispatcher_timing(dispatcher,method,...)
+			else
+				timing(method, ...)
+			end
 		end
 	end
 
@@ -205,13 +223,13 @@ skynet.start(function()
 		timing(method, ...)
 	end
 
-	skynet.dispatch("smg", dispatcher or dft_dispatcher)
+	skynet.dispatch("smg", dft_dispatcher)
 	skynet.dispatch("smg_hotfix",hotfix_dispatch)
 
 	-- set lua dispatcher
 	function smg.enablecluster()
 		enablecluster=true
-		skynet.dispatch("lua", dispatcher or dft_dispatcher)
+		skynet.dispatch("lua", dft_dispatcher)
 	end
 
 	function smg.start_subsrv(subsrv_name,num,...)
@@ -245,11 +263,11 @@ skynet.start(function()
 			end
 			skynet.dispatch("smg", function(session , source ,method,id,...)
 				if type(method) == "number" then
-					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
+					return dft_dispatcher(session,source,method,id,...)
 				end
 				balance=router(...)
 				if not balance then--不需要子服务处理
-					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
+					return dft_dispatcher(session,source,method,id,...)
 				end
 				if balance >num then
 					balance=balance%num+1
@@ -264,11 +282,11 @@ skynet.start(function()
 		else
 			skynet.dispatch("smg", function(session , source ,method,id,...)
 				if type(method) == "number" and method<=max_system_id then
-					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
+					return dft_dispatcher(session,source,method,id,...)
 				end
 				balance=router(...)
 				if not balance then--不需要子服务处理
-					return (dispatcher or dft_dispatcher)(session,source,method,id,...)
+					return dft_dispatcher(session,source,method,id,...)
 				end
 				if balance >num then
 					balance=balance%num+1

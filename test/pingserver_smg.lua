@@ -47,11 +47,13 @@ end
 function response.error()
 	error "throw an error"
 end
+
 --[[
-function dispatch(session , source , id,...)
-	dft_dispatcher(session,source,id,...)
+function dispatch(method,...)
+	print("=======================================dispatch1:",method[1],method[2],method[3],method[4],...)
+	method[4](...)
 end
-]]
+--]]
 
 function init( ... )
 	print ("ping server start:", ...)
