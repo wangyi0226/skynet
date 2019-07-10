@@ -25,7 +25,8 @@ static int linit(lua_State *L) {
 		luaL_error(L,"hashsi init error :%d %d %d",lua_istable(L,1),NUM,SI_LIST);
   	}
   	SI_LIST = (struct hashsi *)skynet_malloc(sizeof(struct hashsi)*NUM);
-	for(int i=0;i<NUM;i++){
+	int i=0;
+	for(i=0;i<NUM;i++){
 		lua_rawgeti(L,1,i+1);
 		int max = luaL_checkinteger(L,-1);
 		hashsi_init(&SI_LIST[i],max);
