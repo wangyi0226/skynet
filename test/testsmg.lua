@@ -5,6 +5,7 @@ skynet.start(function()
 	--skynet.trace()
 	local ps = snax.newservice ("pingserver_smg", "hello world")
 	print(ps.req.ping("foobar"))
+	print("AAAAAAAAAAAAAAAAAAAAAAAAAAA:",ps.wait.ping2("foobar"))
 	print(ps.post.hello())
 	--print(pcall(ps.req.error))
 	--skynet.exit()
@@ -14,6 +15,12 @@ local i
 local hello2_old_uv
 local test_smg_hotfix
 local lock
+local skynet
+
+function wait.ping2(hello)
+	local r=skynet.response()
+	r(true,hello.."#2")
+end
 
 function accept.hello()
 	i = i + 1
@@ -59,15 +66,21 @@ function hotfix(...)
 	response.hello3=function(p)
 		return p
 	end
+
+	wait.ping3=function(p)
+		local r=skynet.response()
+		r(true,p.."#")
+	end
 	return temp
 end
 
 	]]))
 	print(ps.post.hello())
 	print(ps.post.hello2("HHHHHHHHHHHHHHHHHHHHHHH1"))
-	print(ps.post.hello2("HHHHHHHHHHHHHHHHHHHHHHH2"))
-	print(ps.hpost.hello3("HHHHHHHHHHHHHH hello3"))
-	print("................",ps.hreq.hello3("HHHHHHHHHHHHHH hello3"))
+	print("wait==========",ps.wait.ping2("HHHHHHHHHHHHHHHHHHHHHHH2"))
+	print(ps.hpost.hello3("HHHHHHHHHHHHHHpost hello3"))
+	print("PPPPPP",ps.hwait.ping3("HHHHHHHHHHHHHHwait ping3"))
+	print("................",ps.hreq.hello3("HHHHHHHHHHHHHHreq hello3"))
 	skynet.exit()
 
 	local info = skynet.call(ps.handle, "debug", "INFO")

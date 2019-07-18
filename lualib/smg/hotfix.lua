@@ -71,7 +71,7 @@ end
 
 local dummy_env = {}
 for k,v in pairs(_ENV) do 
-	if k ~= "accept" and k~="response" then
+	if k ~= "accept" and k~="response" and k~="wait" then
 		dummy_env[k] = v 
 	end
 end

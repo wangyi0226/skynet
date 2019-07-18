@@ -45,6 +45,7 @@ return function (name , G, loader)
 		assert(G.dispatch == nil)
 		assert(G.accept == nil)
 		assert(G.response == nil)
+		assert(G.wait == nil)
 	end
 
 	local temp_global = {}
@@ -62,6 +63,7 @@ return function (name , G, loader)
 
 	env.accept = func_id(func, "accept")
 	env.response = func_id(func, "response")
+	env.wait = func_id(func, "wait")
 
 	local function init_system(t, name, f)
 		local index = system[name]

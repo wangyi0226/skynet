@@ -32,6 +32,7 @@ function smg.interface(name)
 		name = name,
 		accept = {},
 		response = {},
+		wait={},
 		system = {},
 	}
 
@@ -64,6 +65,21 @@ local function gen_post(type, handle)
 		end })
 end
 
+local function gen_wait(type, handle)
+	return setmetatable({} , {
+		__index = function( t, k )
+			local id = type.wait[k]
+			if not id then--只有子服务才需要
+				return function(...)
+					return skynet_call(handle, "smg","wait",k, ...)
+				end
+			end
+			return function(...)
+				return skynet_call(handle, "smg",id, ...)
+			end
+		end })
+end
+
 local function gen_req(type, handle)
 	return setmetatable({} , {
 		__index = function( t, k )
@@ -89,6 +105,16 @@ local function gen_hpost(type, handle)
 		end })
 end
 
+--通过热更新增的接口需要用hreq或者hpost
+local function gen_hwait(type, handle)
+	return setmetatable({} , {
+		__index = function( t, k )
+			return function(...)
+				return skynet_call(handle, "smg_hotfix","wait",k, ...)
+			end
+		end })
+end
+
 local function gen_hreq(type, handle)
 	return setmetatable({} , {
 		__index = function( t, k )
@@ -102,8 +128,10 @@ local function wrapper(handle, name, type)
 	return setmetatable ({
 		post = gen_post(type, handle),
 		req = gen_req(type, handle),
+		wait = gen_wait(type, handle),
 		hpost = gen_hpost(type, handle),
 		hreq = gen_hreq(type, handle),
+		hwait = gen_hwait(type, handle),
 		type = name,
 		handle = handle,
 		func=type,

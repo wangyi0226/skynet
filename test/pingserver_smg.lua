@@ -11,6 +11,11 @@ function response.ping(hello)
 	return hello
 end
 
+function wait.ping2(hello)
+	local r=skynet.response()
+	r(true,hello.."#")
+end
+
 -- response.sleep and accept.hello share one lock
 local lock
 

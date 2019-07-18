@@ -47,6 +47,7 @@ end
 
 _ENV.accept=hotfix_func_id(smg_env.accept, "accept") 
 _ENV.response=hotfix_func_id(smg_env.response,"response")
+_ENV.wait=hotfix_func_id(smg_env.response,"wait")
 _ENV.dft_dispatcher=false
 _ENV.enablecluster=false
 _ENV.func=func
@@ -99,7 +100,7 @@ end
 local function timing( method, ... )
 	local err, msg
 	profile.start()
-	if method[2] == "accept" then
+	if method[2] == "accept" or method[2] == "wait" then
 		-- no return
 		err,msg = xpcall(method[4], traceback, ...)
 	else
@@ -113,7 +114,7 @@ end
 local function dispatcher_timing(dispatcher,method, ... )
 	local err, msg
 	profile.start()
-	if method[2] == "accept" then
+	if method[2] == "accept" or method[2] == "wait" then
 		-- no return
 		err,msg = xpcall(dispatcher, traceback,method,...)
 	else
@@ -257,7 +258,8 @@ skynet.start(function()
 		if subsrv_name ~= SERVICE_NAME then
 		--当子服务和主服务不是同一个文件时不能存在同主服务同名的接口	
 			for id,method in ipairs(func) do
-				if method[2]=="accept" or method[2] == "response" then 
+				local method_2=method[2]
+				if method_2=="accept" or method_2 == "response" or method_2=="wait" then 
 					assert(not sub1.func.accept[method[3]] and not sub1.func.response[method[3]],method[3])
 				end
 			end
