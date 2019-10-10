@@ -144,7 +144,13 @@ skynet.start(function()
 			elseif method[3] == "substart" then
 				substart=method[4]
 			elseif method[3] == "init" then
-				sub_init=method[4]
+				if not sub_init then
+					sub_init=method[4]
+				end
+			elseif method[3] == "sub_init" then
+				if method[4] then
+					sub_init=method[4]
+				end
 			end
 		end
 	end

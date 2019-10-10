@@ -52,7 +52,7 @@ return function (name , G, loader)
 	local env = setmetatable({} , { __index = temp_global })
 	local func = {}
 
-	local system = { "init", "exit", "hotfix", "profile","dispatch","substart","subid","sublist","route","subhotfix"}
+	local system = { "init","sub_init","exit", "hotfix", "profile","dispatch","substart","subid","sublist","route","subhotfix"}
 
 	do
 		for k, v in ipairs(system) do

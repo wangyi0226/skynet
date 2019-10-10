@@ -7,7 +7,6 @@ local typeclass = {}
 local interface_g = skynet.getenv("smg_interface_g")
 local G = interface_g and require (interface_g) or { require = function() end }
 interface_g = nil
-
 skynet.register_protocol {
 	name = "smg",
 	id = skynet.PTYPE_SMG,
