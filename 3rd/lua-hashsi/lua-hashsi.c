@@ -124,7 +124,7 @@ static int lget(lua_State *L) {
 static int lset(lua_State *L) {
 	struct hashsi * si=id2hashsi(L);
 	const char *key=luaL_checkstring(L,2);
-	int val;
+	lua_Integer val;
 	int ret;
 	rwlock_wlock(&si->lock);
 	if(lua_isnil(L,3)){

@@ -85,7 +85,7 @@ _clear:
 	return ;
 }
 
-int hashsi_upsert(struct hashsi * si, const char * key,int val) {
+int hashsi_upsert(struct hashsi * si, const char * key,int64_t val) {
 	struct hashsi_node *c = hashsi_lookup(si,key);
 	if(c!=NULL){
 		c->val = val;
