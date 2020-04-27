@@ -266,10 +266,15 @@ skynet.start(function()
 			for id,method in ipairs(func) do
 				local method_2=method[2]
 				if method_2=="accept" or method_2 == "response" or method_2=="wait" then 
-					assert(not sub1.func.accept[method[3]] and not sub1.func.response[method[3]],method[3])
+					assert(not sub1.func.accept[method[3]] 
+						and not sub1.func.response[method[3]]
+						and not sub1.func.wait[method[3]]
+						,method[3]
+					)
 				end
 			end
 			skynet.dispatch("smg", function(session , source ,method,id,...)
+				--type(method) == "number"时是主服务的接口
 				if type(method) == "number" then
 					return dft_dispatcher(session,source,method,id,...)
 				end
@@ -292,7 +297,11 @@ skynet.start(function()
 				if type(method) == "number" and method<=max_system_id then
 					return dft_dispatcher(session,source,method,id,...)
 				end
-				balance=router(...)
+				if type(method) == "number" then--method是funcid
+					balance=router(id,...)
+				else
+					balance=router(...)
+				end
 				if not balance then--不需要子服务处理
 					return dft_dispatcher(session,source,method,id,...)
 				end
