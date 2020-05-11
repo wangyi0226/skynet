@@ -84,7 +84,7 @@ local function insert_replace(old_t, new_t, replace_map)
             assert(replace_map[ov] == nil)
             replace_map[ov] = nv
             nv = type(nv) == "table" and nv or NILOBJ
-            insert_replace(ov, nv, replace_map)
+            --insert_replace(ov, nv, replace_map)
         end
     end
     replace_map[old_t] = new_t
