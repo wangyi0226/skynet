@@ -150,14 +150,17 @@ static int lcount(lua_State *L) {
 static int lnext(lua_State *L) {
 	struct hashsi * si=id2hashsi(L);
 	int index=luaL_checkinteger(L,2);
+	rwlock_rlock(&si->lock);
 	for(;index<si->cap;index++){
 		if (strlen(si->node[index].key)>0){
 			lua_pushinteger(L,index+1);
 			lua_pushstring(L,si->node[index].key);
 			lua_pushinteger(L,si->node[index].val);
+			rwlock_runlock(&si->lock);
 			return 3;
 		}
 	}
+	rwlock_runlock(&si->lock);
 	return 0;
 }
 static struct luaL_Reg reg[] = {
