@@ -17,6 +17,9 @@ local function test_insert(si,si2)
 		si2[i]=i*100+tonumber(mode)
 		skynet.sleep(math.random(3))
 	end
+	for k,v in pairs(si) do
+		skynet.sleep(math.random(3))
+	end
 	skynet.exit()
 end
 
@@ -24,6 +27,9 @@ local function test_remove(si,si2)
 	for i=1,MAX do
 		si[i]=nil
 		si2[i]=nil
+		skynet.sleep(math.random(3))
+	end
+	for k,v in pairs(si) do
 		skynet.sleep(math.random(3))
 	end
 	skynet.exit()
