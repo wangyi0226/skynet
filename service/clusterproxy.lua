@@ -12,6 +12,7 @@ skynet.register_protocol {
 
 local forward_map = {
 	[skynet.PTYPE_SNAX] = skynet.PTYPE_SYSTEM,
+	[skynet.PTYPE_SMG] = skynet.PTYPE_SYSTEM,
 	[skynet.PTYPE_LUA] = skynet.PTYPE_SYSTEM,
 	[skynet.PTYPE_RESPONSE] = skynet.PTYPE_RESPONSE,	-- don't free response message
 }

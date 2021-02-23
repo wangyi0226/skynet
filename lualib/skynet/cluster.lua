@@ -91,6 +91,15 @@ function cluster.snax(node, name, address)
 	return snax.bind(handle, name)
 end
 
+function cluster.smg(node, name, address)
+	local snax = require "skynet.smg"
+	if not address then
+		address = cluster.call(node, ".service", "QUERY", "smgd" , name)
+	end
+	local handle = skynet.call(clusterd, "lua", "proxy", node, address)
+	return snax.bind(handle, name)
+end
+
 function cluster.register(name, addr)
 	assert(type(name) == "string")
 	assert(addr == nil or type(addr) == "number")
