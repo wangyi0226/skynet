@@ -85,7 +85,7 @@ end
 function cluster.snax(node, name, address)
 	local snax = require "skynet.snax"
 	if not address then
-		address = cluster.call(node, ".service", "QUERY", "snaxd" , name)
+		address = cluster.query(node,name)
 	end
 	local handle = skynet.call(clusterd, "lua", "proxy", node, address)
 	return snax.bind(handle, name)
@@ -94,7 +94,7 @@ end
 function cluster.smg(node, name, address)
 	local snax = require "skynet.smg"
 	if not address then
-		address = cluster.call(node, ".service", "QUERY", "smgd" , name)
+		address = cluster.query(node,name)
 	end
 	local handle = skynet.call(clusterd, "lua", "proxy", node, address)
 	return snax.bind(handle, name)
