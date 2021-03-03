@@ -8,6 +8,7 @@ local node_sender = {}
 local command = {}
 local config = {}
 local nodename = cluster.nodename()
+local gate_agentname={}
 
 local connecting = {}
 
@@ -122,8 +123,11 @@ function command.reload(source, config)
 	skynet.ret(skynet.pack(nil))
 end
 
-function command.listen(source, addr, port)
+function command.listen(source, addr, port,agentname)
 	local gate = skynet.newservice("gate")
+	if agentname then
+		gate_agentname[gate]=agentname
+	end
 	if port == nil then
 		local address = assert(node_address[addr], addr .. " is down")
 		addr, port = string.match(address, "([^:]+):(.*)$")
@@ -198,7 +202,8 @@ function command.socket(source, subcmd, fd, msg)
 		skynet.error(string.format("socket accept from %s", msg))
 		-- new cluster agent
 		cluster_agent[fd] = false
-		local agent = skynet.newservice("clusteragent", skynet.self(), source, fd)
+		local agentname=gate_agentname[source] or "clusteragent"
+		local agent = skynet.newservice(agentname, skynet.self(), source, fd)
 		local closed = cluster_agent[fd]
 		cluster_agent[fd] = agent
 		if closed then

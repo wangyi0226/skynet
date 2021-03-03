@@ -66,11 +66,11 @@ function cluster.send(node, address, ...)
 	end
 end
 
-function cluster.open(port)
+function cluster.open(port,agentname)
 	if type(port) == "string" then
-		skynet.call(clusterd, "lua", "listen", port)
+		skynet.call(clusterd, "lua", "listen", port,nil,agentname)
 	else
-		skynet.call(clusterd, "lua", "listen", "0.0.0.0", port)
+		skynet.call(clusterd, "lua", "listen", "0.0.0.0", port,agentname)
 	end
 end
 
