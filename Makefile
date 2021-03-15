@@ -135,7 +135,8 @@ $(LUA_CLIB_PATH)/hashsi.so : 3rd/lua-hashsi/hashsi.c 3rd/lua-hashsi/lua-hashsi.c
 
 
 clean :
-	rm -f $(SKYNET_BUILD_PATH)/skynet $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so
+	rm -f $(SKYNET_BUILD_PATH)/skynet $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so && \
+  rm -rf $(SKYNET_BUILD_PATH)/*.dSYM $(CSERVICE_PATH)/*.dSYM $(LUA_CLIB_PATH)/*.dSYM
 
 cleanall: clean
 ifneq (,$(wildcard 3rd/jemalloc/Makefile))
