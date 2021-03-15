@@ -255,9 +255,6 @@ skynet.start(function()
 			balance=1
 			router=function()
 				balance = balance + 1
-				if balance > num then
-					balance = 1
-				end	
 				return balance
 			end
 		end
@@ -282,9 +279,7 @@ skynet.start(function()
 				if not balance then--不需要子服务处理
 					return dft_dispatcher(session,source,method,id,...)
 				end
-				if balance >num then
-					balance=balance%num+1
-				end
+				balance=balance%num+1
 				local handle=sublist[balance]
 				id=handle.func[method][id] or error("func id error:"..tostring(method..","..tostring(id)))
 				skynet.redirect(handle.handle, source,"smg",session,skynet.pack(id,...))
@@ -305,9 +300,7 @@ skynet.start(function()
 				if not balance then--不需要子服务处理
 					return dft_dispatcher(session,source,method,id,...)
 				end
-				if balance >num then
-					balance=balance%num+1
-				end
+				balance=balance%num+1
 				local handle=sublist[balance]
 				skynet.redirect(handle.handle, source,"smg",session,skynet.pack(method,id,...))
 				if skynet.ignoreret then
