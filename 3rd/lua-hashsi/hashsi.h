@@ -3,9 +3,10 @@
 
 #include "rwlock.h"
 
-#define HASHSI_KEYLEN	50
+#define MAX_HASHSI_KEYLEN	100
+
 struct hashsi_node {
-	char key[HASHSI_KEYLEN+1];
+	char *key;
 	int64_t val;
 	struct hashsi_node *next;
 };
@@ -20,7 +21,7 @@ struct hashsi {
 };
 
 void hashsi_init(struct hashsi *si, int max);
-void hashsi_clear(struct hashsi *si);
+//void hashsi_clear(struct hashsi *si);
 struct hashsi_node *hashsi_lookup(struct hashsi *si, const char * key);
 void hashsi_remove(struct hashsi *si, const char * key);
 int hashsi_upsert(struct hashsi * si,const char * key,int64_t val); 

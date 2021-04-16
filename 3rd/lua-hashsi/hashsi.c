@@ -27,15 +27,16 @@ void hashsi_init(struct hashsi *si, int max) {
 	si->node = skynet_malloc(max * sizeof(struct hashsi_node));
 	for (i=0;i<max;i++) {
 		si->node[i].val = -1;
-		memset(si->node[i].key,0,sizeof(si->node[i].key));
+		si->node[i].key=NULL;
 		si->node[i].next = NULL;
 	}
 	si->hash = skynet_malloc(hashcap * sizeof(struct hashsi_node *));
 	memset(si->hash, 0, hashcap * sizeof(struct hashsi_node *));
 }
 
+/*
 void hashsi_clear(struct hashsi *si) {
-	skynet_free(si->node);
+	//skynet_free(si->node);需要释放node中所有key
 	skynet_free(si->hash);
 	si->node = NULL;
 	si->hash = NULL;
@@ -43,14 +44,17 @@ void hashsi_clear(struct hashsi *si) {
 	si->cap = 0;
 	si->count = 0;
 }
+*/
 
 struct hashsi_node * hashsi_lookup(struct hashsi *si, const char *key) {
 	unsigned int h =lhash(key)&si->hashmod;
 	struct hashsi_node * c = si->hash[h];
 	while(c) {
-		int r = strcmp(c->key, key);
-		if (r==0){
-			return c;
+		if(c->key != NULL){
+			int r = strcmp(c->key, key);
+			if (r==0){
+				return c;
+			}
 		}
 		c = c->next;
 	}
@@ -63,12 +67,12 @@ void hashsi_remove(struct hashsi *si,const char *key) {
 	if (c == NULL){
 		return ;
 	}
-	if (strcmp(c->key,key) ==0) {
+	if (c->key!=NULL && strcmp(c->key,key) ==0) {
 		si->hash[h] = c->next;
 		goto _clear;
 	}
 	while(c->next) {
-		if (strcmp(c->next->key,key)==0){
+		if (c->next->key!=NULL && strcmp(c->next->key,key)==0){
 			struct hashsi_node * temp = c->next;
 			c->next = temp->next;
 			c = temp;
@@ -78,7 +82,8 @@ void hashsi_remove(struct hashsi *si,const char *key) {
 	}
 	return;
 _clear:
-	memset(c->key,0,sizeof(c->key));
+	skynet_free(c->key);
+	c->key=NULL;
 	c->val=0;
 	c->next = NULL;
 	--si->count;
@@ -86,6 +91,7 @@ _clear:
 }
 
 int hashsi_upsert(struct hashsi * si, const char * key,int64_t val) {
+
 	struct hashsi_node *c = hashsi_lookup(si,key);
 	if(c!=NULL){
 		c->val = val;
@@ -94,25 +100,27 @@ int hashsi_upsert(struct hashsi * si, const char * key,int64_t val) {
 	if(hashsi_full(si)){
 		return 1;
 	}
+	int keylen=strlen(key);
+	if(keylen>MAX_HASHSI_KEYLEN || keylen == 0){
+		return 2;
+	}
 	unsigned int h=lhash(key);
 	int i;
 	for (i=0;i<si->cap;i++) {
 		unsigned int index = (i+h) % si->cap;
-		if (strlen(si->node[index].key)==0) {
+		if (si->node[index].key==NULL) {
 			c = &si->node[index];
 			break;
 		}
 	}
 	if(c==NULL){
-		return 2;
-	}
-	if(strlen(key)>HASHSI_KEYLEN){
 		return 3;
 	}
 	if(c->next != NULL){
 		return 4;
 	}
 	++si->count;
+	c->key = skynet_malloc(keylen+1);
 	strcpy(c->key,key);
 	c->val = val;
 	h = h & si->hashmod;
