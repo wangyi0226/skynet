@@ -3,7 +3,7 @@
 
 #include "rwlock.h"
 
-#define HASHSI_KEYLEN	20
+#define HASHSI_KEYLEN	50
 struct hashsi_node {
 	char key[HASHSI_KEYLEN+1];
 	int64_t val;
