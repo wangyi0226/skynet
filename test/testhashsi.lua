@@ -3,7 +3,7 @@ local hashsi = require "hashsi"
 local mode = ...
 
 local MAX=60
-local snum=10000
+local snum=100
 local HASHSI_TABLE={
 	TEST={id=1,max=MAX},
 	AGENT={id=2,max=snum},
@@ -14,7 +14,11 @@ if tonumber(mode) then
 
 local function test_insert(si)
 	for i=1,MAX do
-		si[i]=i*100+tonumber(mode)
+		if math.random(2) == 1 then
+			si[i]=i*100+tonumber(mode)
+		else
+			si[i]=(i*100)..mode
+		end
 		--skynet.sleep(math.random(3))
 	end
 	for k,v in pairs(si) do
@@ -54,6 +58,9 @@ else
 	local data={}
 	local function update_value(i)
 		data[i]=math.random(100)-1
+		if math.random(2) == 1  then
+			data[i]=tostring(data[i])
+		end
 		if data[i]==0 then
 			si[i]=nil
 			data[i]=nil
@@ -61,7 +68,7 @@ else
 			si[i]=data[i]
 		end
 		if data[i]~=si[i] then
-			print(i,data[i],si[i])
+			print(i,data[i],si[i],type(data[i]),type(si[i]))
 			error("============================")
 		end
 	end
@@ -69,7 +76,7 @@ else
 		hashsi.init(HASHSI_TABLE)
 		si=hashsi.table(HASHSI_TABLE.TEST2.id)
 		si2=hashsi.table(HASHSI_TABLE.AGENT.id)
-		for c=1,100000 do
+		for c=1,1000 do
 			update_value(math.random(MAX))
 		end
 		for i=1,snum do

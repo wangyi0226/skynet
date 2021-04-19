@@ -7,6 +7,8 @@
 #include "spinlock.h"
 
 #define SI_MAP_SIZE 20
+#define PUSH_VAL(L,node)if((node)->sv!=NULL){lua_pushstring(L,(node)->sv);}else{lua_pushinteger(L,(node)->iv);}
+		
 
 static struct hashsi 		*SI_LIST=NULL;
 static int NUM	= 0; 
@@ -46,7 +48,7 @@ static int lget(lua_State *L) {
 		lua_pushnil(L);
 	}
 	else{
-		lua_pushinteger(L,node->val);
+		PUSH_VAL(L,node)
 	}
 	rwlock_runlock(&si->lock);
 	return 1;
@@ -55,17 +57,23 @@ static int lget(lua_State *L) {
 static int lset(lua_State *L) {
 	struct hashsi * si=id2hashsi(L);
 	const char *key=luaL_checkstring(L,2);
-	lua_Integer val;
+	lua_Integer ival=-1;
+	const char *sval=NULL;
 	int ret;
 	rwlock_wlock(&si->lock);
 	if(lua_isnil(L,3)){
 		hashsi_remove(si,key);
 	}else{
-		val=luaL_checkinteger(L,3);
-		ret=hashsi_upsert(si,key,val);
+		int tp=lua_type(L,3);
+		if(tp == LUA_TSTRING){
+			sval=luaL_checkstring(L,3);
+		}else{
+			ival=luaL_checkinteger(L,3);
+		}
+		ret=hashsi_upsert(si,key,ival,sval);
 		if(ret!=0){
 			rwlock_wunlock(&si->lock);
-			return luaL_error(L,"hashsi insert value error:%d %s %d",ret,key,val);
+			return luaL_error(L,"hashsi insert value error:%d %s",ret,key);
 		}
 	}
 	rwlock_wunlock(&si->lock);
@@ -86,7 +94,7 @@ static int lnext(lua_State *L) {
 		if (si->node[index].key!=NULL){
 			lua_pushinteger(L,index+1);
 			lua_pushstring(L,si->node[index].key);
-			lua_pushinteger(L,si->node[index].val);
+			PUSH_VAL(L,&si->node[index])
 			rwlock_runlock(&si->lock);
 			return 3;
 		}

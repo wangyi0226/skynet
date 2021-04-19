@@ -2,6 +2,7 @@
 #include <string.h>
 #include "skynet_malloc.h"
 #include "hashsi.h"
+#define UP(o,ivalue,svalue) if(o->sv!=NULL){skynet_free(o->sv);o->sv=NULL;} if(svalue!=NULL){o->iv=-1;o->sv = skynet_malloc(strlen(svalue)+1);strcpy(o->sv,svalue);}else{o->sv=NULL;o->iv=ivalue;}
 
 unsigned int lhash(const char *key){
 	unsigned int l = strlen(key);
@@ -26,7 +27,8 @@ void hashsi_init(struct hashsi *si, int max) {
 	si->count = 0;
 	si->node = skynet_malloc(max * sizeof(struct hashsi_node));
 	for (i=0;i<max;i++) {
-		si->node[i].val = -1;
+		si->node[i].iv = -1;
+		si->node[i].sv = NULL;
 		si->node[i].key=NULL;
 		si->node[i].next = NULL;
 	}
@@ -84,17 +86,21 @@ void hashsi_remove(struct hashsi *si,const char *key) {
 _clear:
 	skynet_free(c->key);
 	c->key=NULL;
-	c->val=0;
+	c->iv=-1;
+	if(c->sv!=NULL){
+		skynet_free(c->sv);
+		c->sv=NULL;
+	}
 	c->next = NULL;
 	--si->count;
 	return ;
 }
 
-int hashsi_upsert(struct hashsi * si, const char * key,int64_t val) {
+int hashsi_upsert(struct hashsi * si, const char * key,int64_t iv, const char * sv) {
 
 	struct hashsi_node *c = hashsi_lookup(si,key);
 	if(c!=NULL){
-		c->val = val;
+		UP(c,iv,sv)
 		return 0;
 	}
 	if(hashsi_full(si)){
@@ -122,7 +128,7 @@ int hashsi_upsert(struct hashsi * si, const char * key,int64_t val) {
 	++si->count;
 	c->key = skynet_malloc(keylen+1);
 	strcpy(c->key,key);
-	c->val = val;
+	UP(c,iv,sv)
 	h = h & si->hashmod;
 	if (si->hash[h]) {
 		c->next = si->hash[h];

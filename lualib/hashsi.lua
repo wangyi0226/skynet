@@ -43,11 +43,6 @@ function M.init(conf)
     core.init(list)
 end
 
-function M.new(conf)
-    assert(conf.name and conf.max)
-    core.new(conf.name,conf.max)
-end
-
 function M.table(id)
     assert(type(id)=="number" or type(id)=="string")
     return setmetatable({__id=id},meta)
