@@ -2,7 +2,7 @@
 #include <string.h>
 #include "skynet_malloc.h"
 #include "hashsi.h"
-#define UP(o,ivalue,svalue) if(o->sv!=NULL){skynet_free(o->sv);o->sv=NULL;} if(svalue!=NULL){o->iv=-1;o->sv = skynet_malloc(strlen(svalue)+1);strcpy(o->sv,svalue);}else{o->sv=NULL;o->iv=ivalue;}
+#define UP(o,ivalue,svalue) if(o->sv!=NULL){skynet_free(o->sv);o->sv=NULL;} if(svalue!=NULL){o->iv=-1;o->sv = skynet_malloc(strlen(svalue)+1);strcpy(o->sv,svalue);}else{o->iv=ivalue;}
 
 unsigned int lhash(const char *key){
 	unsigned int l = strlen(key);
