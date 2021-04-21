@@ -486,7 +486,7 @@ function skynet.localname(name)
 end
 
 skynet.now = c.now
-skynet.unix=c.unixtime
+skynet.unixtime=c.unixtime
 skynet.hpc = c.hpc	-- high performance counter
 
 local traceid = 0
