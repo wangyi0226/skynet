@@ -1101,6 +1101,7 @@ lbinary(lua_State *L) {
 	luaL_addchar(&b, 0);
 	luaL_addchar(&b, BSON_BINARY);
 	luaL_addchar(&b, 0);	// sub type
+	lua_pushvalue(L,1);
 	luaL_addvalue(&b);
 	luaL_pushresult(&b);
 
