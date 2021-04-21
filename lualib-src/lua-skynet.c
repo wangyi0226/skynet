@@ -405,9 +405,9 @@ lnow(lua_State *L) {
 }
 
 static int
-lunix(lua_State *L) {
+lunixt(lua_State *L) {
 	uint64_t ti = skynet_now();
-	lua_pushinteger(L, ti/100+skynet_starttime());
+	lua_pushinteger(L, (ti-1)/100+skynet_starttime()+1);
 	return 1;
 }
 
@@ -510,7 +510,7 @@ luaopen_skynet_core(lua_State *L) {
 		{ "packstring", lpackstring },
 		{ "trash" , ltrash },
 		{ "now", lnow },
-		{ "unix", lunix },
+		{ "unixtime", lunixt },
 		{ "hpc", lhpc },	// getHPCounter
 		{ NULL, NULL },
 	};
