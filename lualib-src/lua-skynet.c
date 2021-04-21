@@ -20,6 +20,7 @@
 #endif
 
 #include "skynet.h"
+#include "skynet_timer.h"
 
 // return nsec
 static int64_t
