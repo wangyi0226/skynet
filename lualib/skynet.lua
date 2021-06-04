@@ -638,6 +638,9 @@ function skynet.ret(msg, sz)
 	local tag = session_coroutine_tracetag[running_thread]
 	if tag then c.trace(tag, "response") end
 	local co_session = session_coroutine_id[running_thread]
+	if co_session == nil then
+		error "No session"
+	end
 	session_coroutine_id[running_thread] = nil
 	if co_session == 0 then
 		if sz ~= nil then
@@ -646,9 +649,6 @@ function skynet.ret(msg, sz)
 		return false	-- send don't need ret
 	end
 	local co_address = session_coroutine_address[running_thread]
-	if not co_session then
-		error "No session"
-	end
 	local ret = c.send(co_address, skynet.PTYPE_RESPONSE, co_session, msg, sz)
 	if ret then
 		return true
@@ -973,7 +973,9 @@ function skynet.task(ret)
 	if ret == nil then
 		local t = 0
 		for session,co in pairs(session_id_coroutine) do
-			t = t + 1
+			if co ~= "BREAK" then
+				t = t + 1
+			end
 		end
 		return t
 	end
@@ -988,7 +990,9 @@ function skynet.task(ret)
 	if tt == "table" then
 		for session,co in pairs(session_id_coroutine) do
 			local key = string.format("%s session: %d", tostring(co), session)
-			if timeout_traceback and timeout_traceback[co] then
+			if co == "BREAK" then
+				ret[key] = "BREAK"
+			elseif timeout_traceback and timeout_traceback[co] then
 				ret[key] = timeout_traceback[co]
 			else
 				ret[key] = traceback(co)
@@ -998,7 +1002,11 @@ function skynet.task(ret)
 	elseif tt == "number" then
 		local co = session_id_coroutine[ret]
 		if co then
-			return traceback(co)
+			if co == "BREAK" then
+				return "BREAK"
+			else
+				return traceback(co)
+			end
 		else
 			return "No session"
 		end
