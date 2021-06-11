@@ -203,7 +203,7 @@ function command.socket(source, subcmd, fd, msg)
 		-- new cluster agent
 		cluster_agent[fd] = false
 		local agentname=gate_agentname[source] or "clusteragent"
-		local agent = skynet.newservice(agentname, skynet.self(), source, fd)
+		local agent = skynet.newservice(agentname, skynet.self(), source, fd,msg)
 		local closed = cluster_agent[fd]
 		cluster_agent[fd] = agent
 		if closed then
