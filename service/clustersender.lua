@@ -64,14 +64,25 @@ function command.changenode(host, port)
 	skynet.ret(skynet.pack(nil))
 end
 
+--临时性关闭,可以重连
+function command.close()
+	skynet.error("close sender socket")
+	local _channel=channel
+	channel=nil
+	_channel:close()
+	skynet.ret(skynet.pack(nil))
+end
+
 skynet.start(function()
-	channel = sc.channel {
-			host = init_host,
-			port = tonumber(init_port),
-			response = read_response,
-			nodelay = true,
-		}
 	skynet.dispatch("lua", function(session , source, cmd, ...)
+		if not channel then
+			channel = sc.channel {
+				host = init_host,
+				port = tonumber(init_port),
+				response = read_response,
+				nodelay = true,
+			}
+		end
 		local f = assert(command[cmd])
 		f(...)
 	end)

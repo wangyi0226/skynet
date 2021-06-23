@@ -9,13 +9,15 @@ skynet.start(function()
 	local v = skynet.call(proxy, "lua", "GET", largekey)
 	assert(largevalue == v)
 	skynet.send(proxy, "lua", "PING", "proxy")
-
 	skynet.fork(function()
-		skynet.trace("cluster")
+		--skynet.trace("cluster")
 		print(cluster.call("db", "@sdb", "GET", "a"))
 		print(cluster.call("db2", "@sdb", "GET", "b"))
 		cluster.send("db2", "@sdb", "PING", "db2:longstring" .. largevalue)
 	end)
+
+	--临时关闭sender  可以自动重连
+	cluster.close_sender("db")
 
 	-- test snax service
 	skynet.timeout(300,function()

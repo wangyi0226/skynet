@@ -123,6 +123,17 @@ function command.reload(source, config)
 	skynet.ret(skynet.pack(nil))
 end
 
+function command.close_sender(source,name)
+	local sender=node_sender[name]
+	if sender then
+		local succ,err = pcall(skynet.call, sender, "lua", "close")
+		if not succ then
+			skynet.error(string.format("Cluster sender [%s] close error : %s", name, err))
+		end
+	end
+	skynet.ret(skynet.pack(nil))
+end
+
 function command.listen(source, addr, port,agentname)
 	local gate = skynet.newservice("gate")
 	if agentname then

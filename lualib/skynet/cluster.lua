@@ -115,6 +115,11 @@ function cluster.register(name, addr)
 	return skynet.call(clusterd, "lua", "register", name, addr)
 end
 
+function cluster.close_sender(name)
+	assert(type(name) == "string")
+	return skynet.call(clusterd, "lua", "close_sender", name)
+end
+
 function cluster.query(node, name)
 	return skynet.call(get_sender(node), "lua", "req", 0, skynet.pack(name))
 end
