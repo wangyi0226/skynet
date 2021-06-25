@@ -272,4 +272,14 @@ function smg.substart(name,...)
 	return smg.bind(handle, name)
 end
 
+function smg.call(name,fname,...)
+	local srv=smg.queryservice(name) or error(string.format("[%s] absent",name))
+	return srv[fname].req(...)
+end
+
+function smg.send(name,fname,...)
+	local srv=smg.queryservice(name) or error(string.format("[%s] absent",name))
+	srv[fname].post(...)
+end
+
 return smg
