@@ -274,12 +274,12 @@ end
 
 function smg.call(name,fname,...)
 	local srv=smg.queryservice(name) or error(string.format("[%s] absent",name))
-	return srv[fname].req(...)
+	return srv.req[fname](...)
 end
 
 function smg.send(name,fname,...)
 	local srv=smg.queryservice(name) or error(string.format("[%s] absent",name))
-	srv[fname].post(...)
+	srv.post[fname](...)
 end
 
 return smg
