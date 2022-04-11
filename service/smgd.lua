@@ -276,8 +276,8 @@ skynet.start(function()
 					return dft_dispatcher(session,source,method,id,...)
 				end
 				balance=router(...)
-				if not balance then--不需要子服务处理
-					return dft_dispatcher(session,source,method,id,...)
+				if not balance then
+					error("router return nil")
 				end
 				balance=balance%num+1
 				local handle=sublist[balance]
@@ -298,7 +298,7 @@ skynet.start(function()
 					balance=router(...)
 				end
 				if not balance then--不需要子服务处理
-					return dft_dispatcher(session,source,method,id,...)
+					error("router return nil")
 				end
 				balance=balance%num+1
 				local handle=sublist[balance]
