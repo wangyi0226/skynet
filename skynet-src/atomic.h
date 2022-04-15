@@ -25,6 +25,7 @@
 #else
 
 #include <stdatomic.h>
+#include <stdint.h>
 
 #define ATOM_INT atomic_int
 #define ATOM_POINTER atomic_uintptr_t

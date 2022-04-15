@@ -1,6 +1,6 @@
 #ifndef skynet_hashsi_h
 #define skynet_hashsi_h
-
+#include <stdint.h>
 #include "rwlock.h"
 
 #define MAX_HASHSI_KEYLEN	100
