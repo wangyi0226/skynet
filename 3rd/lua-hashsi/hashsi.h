@@ -17,6 +17,7 @@ struct hashsi {
 	int hashmod;
 	int cap;
 	int count;
+	int max;
 	struct hashsi_node *node;
 	struct hashsi_node **hash;
 };
