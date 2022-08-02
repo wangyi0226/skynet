@@ -3,11 +3,11 @@ local M={}
 local meta={}
 
 local function next_closure(self)
-    local index=0
+    local i,j=0,-1
     local id=rawget(self,"__id")
     return function()
         local key,val
-        index,key,val=core.next(id,index)
+        i,j,key,val=core.next(id,i,j)
 		return key,val
 	end
 end
@@ -37,7 +37,7 @@ function M.init(conf)
             size=v.id
         end
         assert(list[v.id]==nil,"id exist:"..v.id)
-        list[v.id]=v.max
+        list[v.id]=v.max or 0
     end
     assert(size==#list)
     core.init(list)

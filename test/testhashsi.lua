@@ -8,6 +8,7 @@ local HASHSI_TABLE={
 	TEST={id=1,max=MAX},
 	AGENT={id=2,max=snum},
 	TEST2={id=3,max=MAX},
+	TEST3={id=4},
 }
 
 if tonumber(mode) then
@@ -67,7 +68,7 @@ else
 		else
 			si[i]=data[i]
 		end
-		if data[i]~=si[i] then
+		if data[i]~=si[i] and false then
 			print(i,data[i],si[i],type(data[i]),type(si[i]))
 			error("============================")
 		end
@@ -76,9 +77,11 @@ else
 		hashsi.init(HASHSI_TABLE)
 		si=hashsi.table(HASHSI_TABLE.TEST2.id)
 		si2=hashsi.table(HASHSI_TABLE.AGENT.id)
+		print("====================1")
 		for c=1,1000 do
 			update_value(math.random(MAX))
 		end
+		print("====================2")
 		for i=1,snum do
 			skynet.error("=============================",i)
 			skynet.newservice(SERVICE_NAME,i)	-- launch self in test mode
@@ -93,6 +96,48 @@ else
 			count=count+1
 			skynet.error("==========",k,v)
 		end
+
 		assert(count == hashsi.count(si3))
+		local si4=hashsi.table(HASHSI_TABLE.TEST3.id)
+		local count=0
+		local size=1000000
+		for i=0,size-1 do
+			si4[i]=i
+		end
+		print(hashsi.count(si4),size)
+		assert(hashsi.count(si4)==size)
+		for i=0,size-1 do
+			si4[i]=nil
+		end
+		print(hashsi.count(si4))
+		assert(hashsi.count(si4)==0)
+		local m={}
+		for i=0,size-1 do
+			local index=math.random(100000)
+			if math.random(2)==1 then
+				si4[index]=nil
+				m[index]=nil
+			else
+				si4[index]=i
+				m[index]=i
+			end
+		end
+		for k,v in pairs(m) do
+			count=count+1
+			assert(si4[k]==v)
+		end
+		local count2=0
+		local flag={}
+		for k,v in pairs(si4) do
+			count2=count2+1
+			assert(m[tonumber(k)]==v)
+			assert(flag[k]==nil)
+			flag[k]=v
+			m[tonumber(k)]=nil
+		end
+		for k,v in pairs(m) do
+			error("remain",k,si4[k],v)
+		end
+		assert(hashsi.count(si4)==count)
 	end)
 end

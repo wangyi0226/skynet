@@ -88,16 +88,26 @@ static int lcount(lua_State *L) {
 
 static int lnext(lua_State *L) {
 	struct hashsi * si=id2hashsi(L);
-	int index=luaL_checkinteger(L,2);
+	int i = luaL_checkinteger(L,2);
+	int j = luaL_checkinteger(L,3);
 	rwlock_rlock(&si->lock);
-	for(;index<si->cap;index++){
-		if (si->node[index].key!=NULL){
-			lua_pushinteger(L,index+1);
-			lua_pushstring(L,si->node[index].key);
-			PUSH_VAL(L,&si->node[index])
-			rwlock_runlock(&si->lock);
-			return 3;
+	int index,count=0;
+	for(index=i;index<si->cap;index++){
+		struct hashsi_node * node=si->hash[index];
+		count=0;
+		while (node !=NULL){
+			if(count>j){
+				lua_pushinteger(L,index);
+				lua_pushinteger(L,count);
+				lua_pushstring(L,node->key);
+				PUSH_VAL(L,node)
+				rwlock_runlock(&si->lock);
+				return 4;
+			}
+			node=node->next;
+			count++;
 		}
+		j=-1;
 	}
 	rwlock_runlock(&si->lock);
 	return 0;
