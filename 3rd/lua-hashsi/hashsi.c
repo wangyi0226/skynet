@@ -6,6 +6,7 @@
 #define INIT_NODE(node)(node).iv=-1;(node).sv=NULL;(node).key=NULL;(node).next=NULL;
 
 #define START_HASHCAP 16
+#define MAX_CAP 65536
 
 unsigned int lhash(const char *key){
 	unsigned int l = strlen(key);
@@ -18,7 +19,7 @@ unsigned int lhash(const char *key){
 }
 
 void rehash(struct hashsi *si){
-	if(si->count<=START_HASHCAP){
+	if(si->count<=START_HASHCAP || si->cap>=si->max_cap){
 		return;
 	}
 	int newcap=0;
@@ -49,23 +50,29 @@ void rehash(struct hashsi *si){
 	si->hashmod=newmod;
 }
 
-void hashsi_init(struct hashsi *si, int max) {
+void hashsi_init(struct hashsi *si, int node_size,int max_cap) {
 	int i;
 	int hashcap;
 	hashcap = START_HASHCAP;
-	while (hashcap < max) {
+	while (hashcap < node_size) {
 		hashcap *= 2;
 	}
 	rwlock_init(&si->lock);
 	si->hashmod = hashcap - 1;
 	si->cap = hashcap;
-	si->max = max;
+	si->node_size = node_size;
 	si->count = 0;
-	if (max == 0) {
+	if (max_cap!=0){
+		si->max_cap = max_cap;
+	}else{
+		si->max_cap = MAX_CAP;
+	}
+
+	if (node_size == 0) {
 	    si->node=NULL;
 	}else{
-	    si->node = skynet_malloc(max * sizeof(struct hashsi_node));
-	    for (i=0;i<max;i++) {
+	    si->node = skynet_malloc(node_size * sizeof(struct hashsi_node));
+	    for (i=0;i<node_size;i++) {
 	        INIT_NODE(si->node[i])
 	    }
 	}
@@ -166,7 +173,7 @@ int hashsi_upsert(struct hashsi * si, const char * key,int64_t iv, const char * 
 			return 1;
 		}
 		for (i=0;i<si->cap;i++) {
-			unsigned int index = (i+h) % si->max;
+			unsigned int index = (i+h) % si->node_size;
 			if (si->node[index].key==NULL) {
 				c = &si->node[index];
 				break;
@@ -190,6 +197,6 @@ int hashsi_upsert(struct hashsi * si, const char * key,int64_t iv, const char * 
 }
 
 int hashsi_full(struct hashsi *si) {
-	return si->count == si->max;
+	return si->count == si->node_size;
 }
 

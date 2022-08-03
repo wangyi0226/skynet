@@ -29,7 +29,7 @@ function M.count(t)
     return core.count(rawget(t,"__id"))
 end
 
-function M.init(conf)
+function M.init(conf,max_hashcap)
     local list={}
     local size=0
     for k,v in pairs(conf) do
@@ -40,7 +40,7 @@ function M.init(conf)
         list[v.id]=v.max or 0
     end
     assert(size==#list)
-    core.init(list)
+    core.init(list,max_hashcap or 65536)
 end
 
 function M.table(id)

@@ -10,7 +10,7 @@ local HASHSI_TABLE={
 	TEST2={id=3,max=MAX},
 	TEST3={id=4},
 }
-
+local MAX_HASHCAP=nil
 if tonumber(mode) then
 
 local function test_insert(si)
@@ -74,7 +74,7 @@ else
 		end
 	end
 	skynet.start(function()
-		hashsi.init(HASHSI_TABLE)
+		hashsi.init(HASHSI_TABLE,MAX_HASHCAP)
 		si=hashsi.table(HASHSI_TABLE.TEST2.id)
 		si2=hashsi.table(HASHSI_TABLE.AGENT.id)
 		print("====================1")

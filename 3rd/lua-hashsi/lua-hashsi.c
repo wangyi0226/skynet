@@ -20,10 +20,11 @@ static int linit(lua_State *L) {
   	}
   	SI_LIST = (struct hashsi *)skynet_malloc(sizeof(struct hashsi)*NUM);
 	int i=0;
+	int max_cap = luaL_checkinteger(L,2);
 	for(i=0;i<NUM;i++){
 		lua_rawgeti(L,1,i+1);
-		int max = luaL_checkinteger(L,-1);
-		hashsi_init(&SI_LIST[i],max);
+		int node_size = luaL_checkinteger(L,-1);
+		hashsi_init(&SI_LIST[i],node_size,max_cap);
 	}
   	return 0;
 }
