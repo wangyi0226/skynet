@@ -5,6 +5,7 @@ local cluster = require "skynet.cluster.core"
 local config_name = skynet.getenv "cluster"
 local node_address = {}
 local node_sender = {}
+local node_sender_name = {}		--远程节点的专用sender脚本
 local node_sender_closed = {}
 local command = {}
 local config = {}
@@ -43,7 +44,8 @@ local function open_channel(t, key)
 		local host, port = string.match(address, "([^:]+):(.*)$")
 		c = node_sender[key]
 		if c == nil then
-			c = skynet.newservice("clustersender", key, nodename, host, port)
+			local sender_name = node_sender_name[key] or "clustersender"
+			c = skynet.newservice(sender_name, key, nodename, host, port)
 			if node_sender[key] then
 				-- double check
 				skynet.kill(c)
@@ -107,7 +109,19 @@ local function loadconfig(tmp)
 			config[name] = address
 			skynet.error(string.format("Config %s = %s", name, address))
 		else
-			assert(address == false or type(address) == "string")
+			local address_type = type(address)
+
+			if "table" == address_type then
+				local address_ptr 		= address
+				address 				= address_ptr.address
+				--sender在第一次设置之后不可再改变，暂不考虑运行期改变的功能
+				if not node_sender_name[name] then
+					node_sender_name[name] 	= address_ptr.sender
+				end
+			else
+				assert(address == false or address_type == "string")
+			end
+
 			if node_address[name] ~= address then
 				-- address changed
 				if node_sender[name] then
