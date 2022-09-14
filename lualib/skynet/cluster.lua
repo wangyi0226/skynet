@@ -55,6 +55,16 @@ local function get_sender(node)
 	return s
 end
 
+--和sender通信，而非远程节点
+function cluster.call_sender(node,func,...)
+	local s = sender[node]
+	if not s then
+		local task = skynet.packstring(func,...)
+		return skynet.call(get_sender(node), "lua", skynet.unpack(task))
+	end
+	return skynet.call(s, "lua", func, ...)
+end
+
 function cluster.call(node, address, ...)
 	-- skynet.pack(...) will free by cluster.core.packrequest
 	local s = sender[node]
