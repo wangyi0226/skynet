@@ -7,7 +7,7 @@
 #include "spinlock.h"
 
 #define SI_MAP_SIZE 20
-#define PUSH_VAL(L,node)if((node)->sv!=NULL){lua_pushstring(L,(node)->sv);}else{lua_pushinteger(L,(node)->iv);}
+#define PUSH_VAL(L,node)if(node->type==HASHSI_TSTRING){lua_pushstring(L,node->val.p);}else if(node->type == HASHSI_TINT){lua_pushinteger(L,(node)->val.n);}else if(node->type == HASHSI_TPOINTER){lua_pushlightuserdata(L,(node)->val.p);}
 		
 
 static struct hashsi 		*SI_LIST=NULL;
@@ -58,20 +58,30 @@ static int lget(lua_State *L) {
 static int lset(lua_State *L) {
 	struct hashsi * si=id2hashsi(L);
 	const char *key=luaL_checkstring(L,2);
-	lua_Integer ival=-1;
-	const char *sval=NULL;
 	int ret;
 	rwlock_wlock(&si->lock);
 	if(lua_isnil(L,3)){
 		hashsi_remove(si,key);
 	}else{
 		int tp=lua_type(L,3);
-		if(tp == LUA_TSTRING){
-			sval=luaL_checkstring(L,3);
-		}else{
-			ival=luaL_checkinteger(L,3);
-		}
-		ret=hashsi_upsert(si,key,ival,sval);
+		if(tp == LUA_TNUMBER){
+            int64_t n=luaL_checkinteger(L,3);
+            ret=hashsi_upsert(si,key,HASHSI_TINT,&n);
+		}else if(tp == LUA_TSTRING){
+            const char *s=luaL_checkstring(L,3);
+            char *p= skynet_malloc(strlen(s)+1);
+            strcpy(p,s);
+            ret=hashsi_upsert(si,key,HASHSI_TSTRING,p);
+		}else if(tp == LUA_TLIGHTUSERDATA){
+            void *p= lua_touserdata(L,3);
+            if(p==NULL){
+                return luaL_error(L,"hashsi insert error:%s,userdata value is null",key);
+            }
+            ret=hashsi_upsert(si,key,HASHSI_TPOINTER,p);
+        }
+        else{
+            return luaL_error(L,"hashsi insert value error,key:%s,unsupported lua type:%d",key,tp);
+        }
 		if(ret!=0){
 			rwlock_wunlock(&si->lock);
 			return luaL_error(L,"hashsi insert value error:%d %s",ret,key);

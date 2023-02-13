@@ -15,10 +15,13 @@ if tonumber(mode) then
 
 local function test_insert(si)
 	for i=1,MAX do
-		if math.random(2) == 1 then
+	    local n=math.random(3)
+		if n == 1 then
 			si[i]=i*100+tonumber(mode)
-		else
+		elseif n == 2 then
 			si[i]=(i*100)..mode
+		else
+			si[i]=skynet.pack({a=i})
 		end
 		--skynet.sleep(math.random(3))
 	end
@@ -59,8 +62,11 @@ else
 	local data={}
 	local function update_value(i)
 		data[i]=math.random(100)-1
-		if math.random(2) == 1  then
+		local n=math.random(3)
+		if n == 1  then
 			data[i]=tostring(data[i])
+		elseif n==2 then
+			data[i]=skynet.pack(data[i])
 		end
 		if data[i]==0 then
 			si[i]=nil
