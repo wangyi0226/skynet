@@ -37,6 +37,8 @@ struct hashsi {
 };
 
 void hashsi_init(struct hashsi *si, int node_size, int max_cap);
+struct hashsi * hashsi_new( int node_size, int max_cap);
+
 //void hashsi_clear(struct hashsi *si);
 struct hashsi_node *hashsi_lookup(struct hashsi *si, const char * key);
 void hashsi_remove(struct hashsi *si, const char * key);

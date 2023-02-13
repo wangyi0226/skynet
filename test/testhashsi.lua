@@ -49,7 +49,7 @@ skynet.start(function()
 		skynet.fork(test_insert,si)
 	end
 
-	local si2=hashsi.table(HASHSI_TABLE.AGENT.id)
+	local si2=hashsi.table("test")
 	si2[mode]=1
 	skynet.exit()
 	skynet.dispatch("lua", function (...)
@@ -80,9 +80,17 @@ else
 		end
 	end
 	skynet.start(function()
+	    for i=1,1000 do
+	        local si=hashsi.new("testsi"..i)
+	        si["id"]=i
+	    end
+	    for i=1,1000 do
+	        local si=hashsi.table("testsi"..i)
+	        assert(i==si["id"])
+	    end
 		hashsi.init(HASHSI_TABLE,MAX_HASHCAP)
 		si=hashsi.table(HASHSI_TABLE.TEST2.id)
-		si2=hashsi.table(HASHSI_TABLE.AGENT.id)
+		si2=hashsi.new("test")
 		print("====================1")
 		for c=1,1000 do
 			update_value(math.random(MAX))

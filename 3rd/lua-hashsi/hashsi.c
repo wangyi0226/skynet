@@ -50,6 +50,12 @@ void rehash(struct hashsi *si){
 	si->hashmod=newmod;
 }
 
+struct hashsi *hashsi_new(int node_size,int max_cap){
+	struct hashsi *si =	(struct hashsi *)skynet_malloc(sizeof(struct hashsi));
+	hashsi_init(si,node_size,max_cap);
+	return si;
+}
+
 void hashsi_init(struct hashsi *si, int node_size,int max_cap) {
 	int i;
 	int hashcap;
@@ -147,7 +153,7 @@ int hashsi_upsert(struct hashsi * si, const char * key,int type,void *p) {
 	struct hashsi_node *c = hashsi_lookup(si,key);
 	if(c!=NULL){
         FREE_VALUE(c)
-        goto update;
+        goto _update;
 	}
 	int keylen=strlen(key);
 	if(keylen>MAX_HASHSI_KEYLEN || keylen == 0){
@@ -187,7 +193,7 @@ int hashsi_upsert(struct hashsi * si, const char * key,int type,void *p) {
 	c->next = si->hash[h];
 	si->hash[h] = c;
 
-update:
+_update:
     c->type=type;
     if(type == HASHSI_TINT){
         c->val.n=*(int64_t*)p;

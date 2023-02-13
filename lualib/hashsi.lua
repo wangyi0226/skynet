@@ -29,6 +29,12 @@ function M.count(t)
     return core.count(rawget(t,"__id"))
 end
 
+function M.new(key)
+    assert(type(key)=="string")
+    core.new(key)
+    return M.table(key)
+end
+
 function M.init(conf,max_hashcap)
     local list={}
     local size=0
