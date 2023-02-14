@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "skynet_malloc.h"
 #include "hashsi.h"
-#define INIT_NODE(node)(node).val.p=NULL;(node).key=NULL;(node).next=NULL;(node).type=HASHSI_TNULL;
 #define FREE_VALUE(v) if(v->type == HASHSI_TSTRING){skynet_free(v->val.p);}v->type=HASHSI_TNULL;v->val.p=NULL;
 #define START_HASHCAP 16
 #define MAX_CAP 65536
@@ -52,12 +51,12 @@ void rehash(struct hashsi *si){
 
 struct hashsi *hashsi_new(int node_size,int max_cap){
 	struct hashsi *si =	(struct hashsi *)skynet_malloc(sizeof(struct hashsi));
+    memset(si,0,sizeof(struct hashsi));
 	hashsi_init(si,node_size,max_cap);
 	return si;
 }
 
 void hashsi_init(struct hashsi *si, int node_size,int max_cap) {
-	int i;
 	int hashcap;
 	hashcap = START_HASHCAP;
 	while (hashcap < node_size) {
@@ -73,14 +72,13 @@ void hashsi_init(struct hashsi *si, int node_size,int max_cap) {
 	}else{
 		si->max_cap = MAX_CAP;
 	}
-
 	if (node_size == 0) {
+        //hash node是动态增加
 	    si->node=NULL;
 	}else{
+        //hash node是固定大小
 	    si->node = skynet_malloc(node_size * sizeof(struct hashsi_node));
-	    for (i=0;i<node_size;i++) {
-	        INIT_NODE(si->node[i])
-	    }
+        memset(si->node,0,sizeof(struct hashsi_node)*node_size);
 	}
 	si->hash = skynet_malloc(hashcap * sizeof(struct hashsi_node *));
 	memset(si->hash, 0, hashcap * sizeof(struct hashsi_node *));
@@ -140,7 +138,7 @@ _clear:
 	c->key=NULL;
     FREE_VALUE(c)
 	c->next = NULL;
-	if (si->node == NULL){
+	if (si->node == NULL){//如果是动态增加的node就直接释放
 		skynet_free(c);	
 	}
 	--si->count;
@@ -167,7 +165,7 @@ int hashsi_upsert(struct hashsi * si, const char * key,int type,void *p) {
 		if(c==NULL){
 			return 3;
 		}
-		INIT_NODE(*c)
+        memset(c,0,sizeof(struct hashsi_node));
 	}else{
 		if(hashsi_full(si)){
 			return 1;
