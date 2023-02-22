@@ -19,7 +19,7 @@ union hashsi_val{
 struct hashsi_node {
 	char *key;
     struct hashsi_node *next;
-    int type;
+    uint8_t type;
     union hashsi_val val;
 };
 

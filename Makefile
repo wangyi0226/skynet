@@ -53,7 +53,7 @@ update3rd :
 CSERVICE = snlua logger gate harbor
 LUA_CLIB = websocketnetpack clientwebsocket intnetpack clientintsocket skynet \
   client \
-  bson md5 sproto lpeg hashsi $(TLS_MODULE)
+  bson md5 sproto lpeg hashsi sharearray $(TLS_MODULE)
 
 LUA_CLIB_SKYNET = \
   lua-skynet.c lua-seri.c \
@@ -132,6 +132,10 @@ $(LUA_CLIB_PATH)/lpeg.so : 3rd/lpeg/lpcap.c 3rd/lpeg/lpcode.c 3rd/lpeg/lpprint.c
 
 $(LUA_CLIB_PATH)/hashsi.so : 3rd/lua-hashsi/hashsi.c 3rd/lua-hashsi/lua-hashsi.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I3rd/lua-hashsi -Iskynet-src $^ -o $@ 
+
+$(LUA_CLIB_PATH)/sharearray.so : 3rd/lua-sharearray/lua-sharearray.c  | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I3rd/lua-sharearray -Iskynet-src $^ -o $@ 
+
 
 
 clean :

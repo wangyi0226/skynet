@@ -4,7 +4,7 @@
 #include <string.h>
 #include "skynet_malloc.h"
 #include "hashsi.h"
-#include "spinlock.h"
+#include "rwlock.h"
 
 #define SI_MAP_SIZE 20
 #define PUSH_VAL(L,node)if(node->type==HASHSI_TSTRING){lua_pushstring(L,node->val.p);}else if(node->type == HASHSI_TINT){lua_pushinteger(L,(node)->val.n);}else if(node->type == HASHSI_TPOINTER){lua_pushlightuserdata(L,(node)->val.p);}
