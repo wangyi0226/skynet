@@ -56,7 +56,7 @@ static int linit(lua_State *L){
     int len=luaL_len(L,2);
     if(len!=s->size){
         ATOM_STORE(&s->error,1);
-        return luaL_error(L,"sharearray.init out of range,list_len:%d, sharearray size:%d",len,s->size); 
+        return luaL_error(L,"sharearray.init list_len must be %d,list_len:%d",s->size,len);
     }
     size_t malloc_size=0;
     if(s->type ==SA_TINT){
@@ -102,7 +102,7 @@ static int linit(lua_State *L){
                 fail=1;
                 break;
             }
-            ((void **)s->p)[ui++]=p;
+            ((void **)sp)[ui++]=p;
         }else{
            lua_pushfstring(L,"sharearray type error:%d ",i,s->type);
            fail=1;
@@ -227,7 +227,7 @@ static int lrange(lua_State *L){
     }
     lua_createtable(L,size,0);
     for(i=0;i<size;i++){
-        uint64_t index=(start+i)%s->size;
+        int index=(start+i)%s->size;
         if(s->type==SA_TINT){
             lua_pushinteger(L,((int32_t *)s->p)[index]);
         }else {
