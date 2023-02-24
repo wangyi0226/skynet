@@ -5,15 +5,15 @@ local shop_num=1
 local shopitem_total_num=30
 local shopitem_update_num=10
 local shopitem_num=5
-local initnum=shopitem_total_num-shopitem_update_num
-local randnum=initnum//shopitem_num
+local usednum=shopitem_total_num-shopitem_update_num
+local randnum=usednum//shopitem_num
 
 local SA_TINT=1
 local SA_TSTRING=2
 local SA_TPOINTER=3
 local function sa2str(sa)
 	local info=sharearray.info(sa)
-	return string.format("ui:%d,ri:%d,used:%d,size:%d\n",info.ui,info.ri,info.used,info.size)
+	return string.format("ri:%d,ui:%d,size:%d\n",info.ri,info.ui,info.size)
 end
 
 local mode = ...
@@ -42,11 +42,12 @@ skynet.start(function()
 		print("============ init shop",shopid)
 		randomshop[shopid]=sharearray.new(shopitem_total_num,SA_TINT)
 		local list={}
-		for j=1,initnum do
+		for j=1,shopitem_total_num do
 			local shopitemid=shopid*10000000+j
 			table.insert(list,shopitemid)
 		end
-		sharearray.update(randomshop[shopid],list)
+		local ri,ui=0,usednum
+		sharearray.init(randomshop[shopid],list,ri,ui)
 		print("info:",sa2str(randomshop[shopid]))
 	end	
 	for i=1,shop_num do
