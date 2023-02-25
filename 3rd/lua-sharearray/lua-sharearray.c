@@ -21,6 +21,7 @@ struct sharearray{
     ATOM_INT error;
     int size;
 };
+
 static int lnew(lua_State *L){
     int size=luaL_checkinteger(L,1);
     int type=luaL_checkinteger(L,2);
@@ -39,7 +40,7 @@ static int lnew(lua_State *L){
 }
 
 static int linit(lua_State *L){
-    struct sharearray *s=(struct sharearray *)lua_touserdata(L,1);
+    struct sharearray *s=(struct sharearray*)lua_touserdata(L,1);
     if(s==NULL || !lua_istable(L,2)){
         return luaL_error(L,"sharearray.init params error"); 
     }
@@ -109,9 +110,11 @@ static int linit(lua_State *L){
            break;
         }
         i++;
+        lua_pop(L,1);
     }
 
     if(fail){
+        lua_pop(L,1);
         ATOM_STORE(&s->error,1);
         if(s->type==SA_TSTRING){
             char **p=sp;
@@ -122,15 +125,11 @@ static int linit(lua_State *L){
             }
         }
         skynet_free(sp);
-        lua_error(L);
-        return -1;
+        return lua_error(L);
     }else{
         s->p=sp;
         ATOM_STORE(&s->ri,sri);
         ATOM_STORE(&s->ui,sui);
-        if(sri<=sui){
-
-        }
     }
     return 0;
 }
