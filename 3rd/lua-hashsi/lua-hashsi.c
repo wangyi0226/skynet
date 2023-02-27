@@ -93,8 +93,13 @@ static struct  hashsi *id2hashsi(lua_State *L){
         }
     }else{
         rwlock_rlock(&lock);
+        if(SI_MAP==NULL){
+            rwlock_runlock(&lock);
+            luaL_error(L,"hashsi map does not initialized");
+            return NULL;
+        }
         const char *key= luaL_checkstring(L,1);
-        int i=0;
+        int i;
         for(i=0;i<SI_MAP->used;i++){
             if(strcmp(SI_MAP->m[i].key,key)==0){
                 rwlock_runlock(&lock);
