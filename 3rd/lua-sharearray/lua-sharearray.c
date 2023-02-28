@@ -112,9 +112,8 @@ static int linit(lua_State *L){
         i++;
         lua_pop(L,1);
     }
-
+    
     if(fail){
-        lua_pop(L,1);
         ATOM_STORE(&s->error,1);
         if(s->type==SA_TSTRING){
             char **p=sp;
@@ -179,6 +178,7 @@ static int lupdate(lua_State *L){
             ui-=s->size;
         }
         i++;
+        lua_pop(L,1);
     }
     int update=i-1;
     if(update>0){

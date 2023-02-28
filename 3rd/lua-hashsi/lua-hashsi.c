@@ -41,6 +41,7 @@ static int linit(lua_State *L) {
 		lua_rawgeti(L,1,i+1);
 		int node_size = luaL_checkinteger(L,-1);
 		hashsi_init(&SI_LIST[i],node_size,max_cap);
+        lua_pop(L,1);
 	}
     rwlock_wunlock(&lock);
   	return 0;
