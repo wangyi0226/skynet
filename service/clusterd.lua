@@ -168,7 +168,7 @@ function command.close_sender(source,name)
 	skynet.ret(skynet.pack(nil))
 end
 
-function command.listen(source, addr, port,agentname)
+function command.listen(source, addr, port,agentname,maxclient)
 	local gate = skynet.newservice("gate")
 	if agentname then
 		gate_agentname[gate]=agentname
@@ -178,10 +178,10 @@ function command.listen(source, addr, port,agentname)
 		addr, port = string.match(address, "(.+):([^:]+)$")
 		port = tonumber(port)
 		assert(port ~= 0)
-		skynet.call(gate, "lua", "open", { address = addr, port = port })
+		skynet.call(gate, "lua", "open", { address = addr, port = port, maxclient = maxclient })
 		skynet.ret(skynet.pack(addr, port))
 	else
-		local realaddr, realport = skynet.call(gate, "lua", "open", { address = addr, port = port })
+		local realaddr, realport = skynet.call(gate, "lua", "open", { address = addr, port = port, maxclient = maxclient })
 		skynet.ret(skynet.pack(realaddr, realport))
 	end
 end
