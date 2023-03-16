@@ -48,6 +48,7 @@ local skynet = {
 
 -- code cache
 skynet.cache = require "skynet.codecache"
+skynet._proto = proto
 
 function skynet.register_protocol(class)
 	local name = class.name
