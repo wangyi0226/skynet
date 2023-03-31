@@ -156,7 +156,15 @@ skynet.start(function()
 	end
 
 	_ENV.dft_dispatcher=function( session , source , id, ...)
-		local method = func[id] or error("func id error:"..tostring(id))
+		local method = func[id]
+		if not method then
+            local s=tostring(id)
+        	local list={...}
+        	if next(list) then
+        	    s=s.."."..tostring(list[1])
+        	end
+            error("func id error:"..s)
+        end
 		if method[2] == "system" then
 			local command = method[3]
 			if command == "hotfix" then
