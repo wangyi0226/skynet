@@ -60,6 +60,7 @@ static int lnew(lua_State *L){
     }
     for(i=0;i<SI_MAP->used;i++){
         if(strcmp(SI_MAP->m[i].key,key)==0){
+            rwlock_wunlock(&lock);
             luaL_error(L,"hashsi new error,key[%s] already exists",key);
             return 0;
         }
