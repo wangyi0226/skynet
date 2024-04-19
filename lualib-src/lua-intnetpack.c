@@ -14,7 +14,7 @@
 
 #define QUEUESIZE 1024
 #define HASHSIZE 4096
-#define SMALLSTRING 8192
+#define SMALLSTRING 1024*1024*10
 
 #define TYPE_DATA 1
 #define TYPE_MORE 2
