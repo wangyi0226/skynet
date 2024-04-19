@@ -21,16 +21,12 @@ function handler.message(fd, msg, sz)
 	-- recv a package, forward it
 	local c = connection[fd]
 
-	if c == nil then
-		skynet.redirect(watchdog, fd, "client", 0, msg, sz)
-		return		
-	end
-	
 	local agent = c.agent
 	if agent then
 		skynet.redirect(agent, c.client, "client", 0, msg, sz)
 	else
-		skynet.redirect(watchdog, fd, "client", 0, msg, sz)
+		skynet.send(watchdog, "lua", "socket", "data", fd, skynet.tostring(msg, sz))
+		skynet.trash(msg,sz)
 	end
 end
 
