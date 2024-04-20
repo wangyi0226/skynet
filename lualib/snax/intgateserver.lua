@@ -3,7 +3,7 @@ local netpack = require "intnetpack"
 local socketdriver = require "skynet.socketdriver"
 
 local gateserver = {}
-local smallstring = 8192
+local smallstring = 10*1024*1024
 local socket	-- listen socket
 local queue		-- message queue
 local maxclient	-- max client
